@@ -1,0 +1,58 @@
+# .dotfiles-sync.yml — workbench-shell
+#
+# Ecosystem module (workbench-core ARCHITECTURE.md §2/§3): opinionated
+# shell/editor/prompt layer. Meaningless standalone — depends on
+# workbench-core's loader, Core API (elevation/_read_prompt/_str_lower,
+# platform facts, installers-common.sh).
+#
+# See contracts/manifest-spec.md (in workbench-core) for the full field
+# reference.
+version: 1
+branch: main
+
+core_api: ">=1.1 <2.0"
+sync:
+  enabled: true
+
+deploy:
+  - src: files/tmux.conf
+    dest: ~/.config/tmux/tmux.conf
+    mode: link
+  - src: files/vimrc
+    dest: ~/.vimrc
+    mode: link
+  - src: files/starship.toml
+    dest: ~/.config/starship.toml
+    mode: copy
+  - src: files/direnv.toml
+    dest: ~/.config/direnv/direnv.toml
+    mode: copy
+
+register:
+  shell:
+    - src: shell/editors.sh
+      tier: env
+    - src: shell/aliases.sh
+      tier: core
+    - src: shell/bash.sh
+      tier: core
+    - src: shell/zsh.sh
+      tier: core
+    - src: shell/omp.sh
+      tier: tools
+    - src: shell/starship.sh
+      tier: tools
+    - src: shell/omz.sh
+      tier: tools
+    - src: shell/zsh-plugins.sh
+      tier: tools
+    - src: shell/direnv.sh
+      tier: tools
+    - src: shell/fzf.sh
+      tier: tools
+  installers:
+    - src: shell/installers.sh
+  getters:
+    - name: shell
+      function: get-shell-functions
+      label: "Shell/prompt/editor helpers (aliases, direnv, fzf, prompt engines)"

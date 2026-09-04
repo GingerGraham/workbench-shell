@@ -1,0 +1,21 @@
+# direnv global configuration — deployed once by workbench-shell, never
+# overwritten afterwards. Edit freely; a later sync will not touch this file.
+# See: https://direnv.net/man/direnv.toml.1.html
+
+[global]
+# Load .env files automatically alongside .envrc (via dotenv_if_exists in .envrc).
+load_dotenv = true
+
+# Don't warn about long-running .envrc evaluations under this threshold.
+warn_timeout = "10s"
+
+# ── Whitelist ──────────────────────────────────────────────────────────────
+# Directories under here are auto-allowed — no "direnv: error .envrc is
+# blocked" prompt, and no need to run `direnv allow` per project.
+# Adjust this to match your workbench-git projects_base if you changed it
+# from the default (see: git-projects-base), or remove it if you'd rather
+# approve each project individually.
+[whitelist]
+prefix = [
+    "~/Projects",
+]
