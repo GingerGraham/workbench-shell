@@ -1,0 +1,70 @@
+#!/usr/bin/env zsh
+# shell/zsh.sh — workbench-shell
+# Zsh-specific interactive shell configuration.
+# Registered at tier: core (.dotfiles-sync.yml), sourced unconditionally —
+# self-guards below since workbench-core's tier system has no shell-type
+# selector. Must not be sourced in bash — all constructs here are zsh-only.
+[[ -z "${ZSH_VERSION}" ]] && return 0
+
+# ── History ───────────────────────────────────────────────────────────────────
+HISTFILE="${HOME}/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+HISTDUP=erase
+
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+setopt hist_verify
+
+# ── Completion system ─────────────────────────────────────────────────────────
+autoload -Uz compinit
+# Regenerate compinit dump at most once per day to keep startup fast.
+# The glob (#qN.mh+24) matches the dump file if it is older than 24 hours.
+if [[ -n "${ZDOTDIR:-${HOME}}/.zcompdump"(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
+
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' completer _expand _complete _correct _approximate
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' menu select=2
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-prompt '%SAt %p: Hit TAB for more, or the character to insert%s'
+zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
+zstyle ':completion:*' menu select=long
+zstyle ':completion:*' select-prompt '%SScrolling active: current selection at %p%s'
+zstyle ':completion:*' use-compctl false
+zstyle ':completion:*' verbose true
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
+# Note: ':completion:*:default' list-colors is not set here — it depends on
+# LS_COLORS, which is populated by a platform-tier file that loads after
+# core (contracts/core-api.md's loader tier order). Set it there instead if
+# you want colourised kill-completion output.
+
+# ── Key bindings ──────────────────────────────────────────────────────────────
+# Edit the current command line buffer in $EDITOR
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
+
+# Expand history references on space (e.g. !! becomes the last command)
+bindkey ' ' magic-space
+# Undo last edit
+bindkey '^_' undo
+
+# ── Directory change hook ─────────────────────────────────────────────────────
+# Auto-list directory contents after every cd (but not in home directory)
+chpwd() {
+    [[ "$PWD" != "$HOME" ]] && ls -Alh --color=auto
+}
+
+log_debug "zsh: shell-specific config loaded"
