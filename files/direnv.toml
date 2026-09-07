@@ -9,13 +9,20 @@ load_dotenv = true
 # Don't warn about long-running .envrc evaluations under this threshold.
 warn_timeout = "10s"
 
-# ── Whitelist ──────────────────────────────────────────────────────────────
-# Directories under here are auto-allowed — no "direnv: error .envrc is
-# blocked" prompt, and no need to run `direnv allow` per project.
-# Adjust this to match your workbench-git projects_base if you changed it
-# from the default (see: git-projects-base), or remove it if you'd rather
-# approve each project individually.
-[whitelist]
-prefix = [
-    "~/Projects",
-]
+# ── Whitelist (disabled by default) ─────────────────────────────────────────
+# direnv does NOT expand "~" in direnv.toml — a whitelist prefix is matched
+# literally against the absolute path of each .envrc, so "~/Projects" would
+# never match a real path like "/home/<you>/Projects/...". workbench-core has
+# no manifest-level templating to substitute your real home directory at
+# deploy time (the reason the precursor's Ansible-rendered
+# projects_base_expanded is gone), so this is left commented out rather than
+# shipping a default that looks active but silently does nothing.
+#
+# To enable: uncomment below and replace the path with your own workbench-git
+# projects_base (see: git-projects-base), fully expanded — e.g.
+# "/home/alice/Projects", not "~/Projects".
+#
+# [whitelist]
+# prefix = [
+#     "/home/<you>/Projects",
+# ]

@@ -80,7 +80,7 @@ correctly and survives every future sync.
 | `files/tmux.conf` | `~/.config/tmux/tmux.conf` | Symlinked — kept in sync on every update |
 | `files/vimrc` | `~/.vimrc` | Symlinked — kept in sync on every update |
 | `files/starship.toml` | `~/.config/starship.toml` | Deployed once, never overwritten — edit freely |
-| `files/direnv.toml` | `~/.config/direnv/direnv.toml` | Deployed once, never overwritten — edit freely; adjust the `[whitelist]` prefix if your `workbench-git` `projects_base` isn't the default `~/Projects` |
+| `files/direnv.toml` | `~/.config/direnv/direnv.toml` | Deployed once, never overwritten — edit freely. Ships with `[whitelist]` commented out: direnv does not expand `~` in `direnv.toml`, so a default like `~/Projects` would silently never match anything. Uncomment it yourself with your `workbench-git` `projects_base`, fully expanded (e.g. `/home/you/Projects`), if you want per-project `direnv allow` prompts skipped |
 
 ## Requires
 
