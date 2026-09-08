@@ -251,19 +251,25 @@ _zsh-plugins-install-standalone() {
     log_info "Installing zsh plugins to ${plugin_dir}..."
 
     if [[ ! -d "${plugin_dir}/zsh-autosuggestions" ]]; then
-        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions \
-            "${plugin_dir}/zsh-autosuggestions" \
-            && log_info "zsh-autosuggestions cloned" \
-            || { log_error "Failed to clone zsh-autosuggestions"; return 1; }
+        if git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions \
+            "${plugin_dir}/zsh-autosuggestions"; then
+            log_info "zsh-autosuggestions cloned"
+        else
+            log_error "Failed to clone zsh-autosuggestions"
+            return 1
+        fi
     else
         log_info "zsh-autosuggestions already present"
     fi
 
     if [[ ! -d "${plugin_dir}/zsh-syntax-highlighting" ]]; then
-        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting \
-            "${plugin_dir}/zsh-syntax-highlighting" \
-            && log_info "zsh-syntax-highlighting cloned" \
-            || { log_error "Failed to clone zsh-syntax-highlighting"; return 1; }
+        if git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting \
+            "${plugin_dir}/zsh-syntax-highlighting"; then
+            log_info "zsh-syntax-highlighting cloned"
+        else
+            log_error "Failed to clone zsh-syntax-highlighting"
+            return 1
+        fi
     else
         log_info "zsh-syntax-highlighting already present"
     fi
@@ -592,6 +598,7 @@ _neovim_cleanup_package_install() {
     [[ -z "${packaged}" ]] && return 0
 
     log_warn "A package-manager-installed Neovim was found: ${packaged}"
+    # shellcheck disable=SC2088
     log_warn "~/.local/bin is ahead of it on PATH, so the tarball install takes precedence regardless."
 
     if [[ ! -e /dev/tty ]]; then
