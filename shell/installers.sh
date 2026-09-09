@@ -236,8 +236,9 @@ install-zsh-default-shell() {
 # action (chsh), not a package install. Mirrors its own idempotency check:
 # is zsh both present AND the account's current default shell.
 installed-zsh-default-shell() {
-    command -v zsh &>/dev/null || return 1
-    [[ "${SHELL}" == "$(command -v zsh)" ]]
+    local zsh_path
+    zsh_path="$(command -v zsh)" || return 1
+    [[ "${SHELL}" == "${zsh_path}" ]]
 }
 
 # ── zsh plugin install ────────────────────────────────────────────────────────

@@ -8,8 +8,8 @@ All notable changes to `workbench-shell` are documented here.
 
 - Added `installed-oh-my-posh`, `installed-starship`, `installed-oh-my-zsh`,
   `installed-zsh`, `installed-zsh-default-shell`, `installed-direnv`,
-  `installed-fzf`, `installed-neovim` — reports install status to `wb
-  tools upgrade`/`list --status` (workbench-core §12 D43).
+  `installed-fzf`, `installed-neovim` — reports install status to
+  `wb tools upgrade`/`wb tools list --status` (workbench-core §12 D43).
   `install-zsh-plugins` deliberately has no predicate — see
   shell/installers.sh comment for why.
 
