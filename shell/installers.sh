@@ -78,6 +78,10 @@ install-oh-my-posh() {
     esac
 }
 
+installed-oh-my-posh() {
+    command -v oh-my-posh &>/dev/null
+}
+
 # ── starship install/update ─────────────────────────────────────────────────
 
 _starship-install-linux() {
@@ -109,6 +113,10 @@ install-starship() {
     esac
 }
 
+installed-starship() {
+    command -v starship &>/dev/null
+}
+
 # ── oh-my-zsh install ─────────────────────────────────────────────────────────
 
 install-oh-my-zsh() {
@@ -132,6 +140,13 @@ install-oh-my-zsh() {
         log_error "curl or wget required to install oh-my-zsh"
         return 1
     fi
+}
+
+# Mirrors install-oh-my-zsh's own idempotency check — the omz CLI wrapper,
+# not the ~/.oh-my-zsh directory, since that's what the installer itself
+# already uses to decide "already installed" vs "fresh install".
+installed-oh-my-zsh() {
+    command -v omz &>/dev/null
 }
 
 # ── zsh install ───────────────────────────────────────────────────────────────
@@ -189,6 +204,10 @@ install-zsh() {
     log_info "zsh installed. To set as your default shell, run: install-zsh-default-shell"
 }
 
+installed-zsh() {
+    command -v zsh &>/dev/null
+}
+
 install-zsh-default-shell() {
     if ! command -v zsh &>/dev/null; then
         log_error "zsh is not installed — run install-zsh first"
@@ -211,6 +230,14 @@ install-zsh-default-shell() {
     log_info "Changing default shell to ${zsh_path}..."
     chsh -s "${zsh_path}"
     log_info "Default shell changed. Log out and back in (or start a new session) to apply."
+}
+
+# Not "is zsh installed" — install-zsh-default-shell is a system-config
+# action (chsh), not a package install. Mirrors its own idempotency check:
+# is zsh both present AND the account's current default shell.
+installed-zsh-default-shell() {
+    command -v zsh &>/dev/null || return 1
+    [[ "${SHELL}" == "$(command -v zsh)" ]]
 }
 
 # ── zsh plugin install ────────────────────────────────────────────────────────
@@ -310,6 +337,17 @@ install-zsh-plugins() {
     _zsh-plugins-install-standalone
 }
 
+# No installed-zsh-plugins predicate: install-zsh-plugins installs two
+# plugins via whichever of five different delivery paths succeeds first
+# (dnf/apt/zypper/pacman/brew package, or a standalone git clone to
+# ~/.local/share/zsh/plugins/), each landing files at a different,
+# distro-specific path, and unlike every other installer in this file it
+# never verifies its own success — no existing check to mirror. A
+# multi-path guess would be exactly the "not confident it's genuinely
+# correct" case docs/module-authoring.md says to leave undeclared. Stays
+# unresponsive to `wb tools upgrade`; fully installable via `wb tools
+# install zsh-plugins`.
+
 # ── direnv install ────────────────────────────────────────────────────────────
 
 _direnv-install-rhel() {
@@ -393,6 +431,10 @@ install-direnv() {
     else
         log_warn "direnv not found in PATH after install. Restart your shell or check ~/.local/bin."
     fi
+}
+
+installed-direnv() {
+    command -v direnv &>/dev/null
 }
 
 # ── fzf install ───────────────────────────────────────────────────────────────
@@ -486,6 +528,10 @@ install-fzf() {
     else
         log_warn "fzf not on PATH after install — check ~/.local/bin is in PATH"
     fi
+}
+
+installed-fzf() {
+    command -v fzf &>/dev/null
 }
 
 # ── Neovim install ────────────────────────────────────────────────────────────
@@ -700,4 +746,10 @@ install-neovim() {
     else
         log_warn "nvim not found on PATH after install. Restart your shell or check ~/.local/bin."
     fi
+}
+
+# neovim's binary is nvim, not neovim — install-neovim's own final check
+# uses the same name.
+installed-neovim() {
+    command -v nvim &>/dev/null
 }
