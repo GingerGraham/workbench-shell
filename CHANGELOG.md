@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-09
+
 ### Added
 
 - Added `installed-oh-my-posh`, `installed-starship`, `installed-oh-my-zsh`,
