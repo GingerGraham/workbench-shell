@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shell/editors.sh — workbench-shell
 # Editor environment — sets EDITOR, VISUAL, and related vars. No subprocesses.
-# Registered at tier: env (.dotfiles-sync.yml). Ported from
+# Registered at tier: env (workbench.yml). Ported from
 # workbench-precursor's env/10-editors.sh — WORKBENCH_OS (Core API) replaces
 # DOTFILES_OS.
 

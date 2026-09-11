@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # shell/omp.sh — workbench-shell
-# oh-my-posh prompt engine. Registered at tier: tools (.dotfiles-sync.yml),
+# oh-my-posh prompt engine. Registered at tier: tools (workbench.yml),
 # sourced unconditionally — self-guards on presence and wins the
 # prompt-engine election over starship/oh-my-zsh by loading first (register
-# order in .dotfiles-sync.yml). workbench-core's loader has no hardcoded
+# order in workbench.yml). workbench-core's loader has no hardcoded
 # prompt-election logic (principle 4) — each prompt-engine file here is
 # responsible for its own guard and for setting WORKBENCH_PROMPT_SET=true
 # (contracts/core-api.md's prompt-ownership convention) so the loader's own

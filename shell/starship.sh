@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # shell/starship.sh — workbench-shell
-# starship prompt engine. Registered at tier: tools (.dotfiles-sync.yml),
+# starship prompt engine. Registered at tier: tools (workbench.yml),
 # sourced unconditionally — self-guards below: skips if oh-my-posh already
 # won the prompt-engine election (omp.sh loads first — register order in
-# .dotfiles-sync.yml), or if starship itself isn't present.
+# workbench.yml), or if starship itself isn't present.
 #
 # Uses whatever config is found at $STARSHIP_CONFIG or the XDG default
 # (~/.config/starship.toml) — including a pre-existing distro-provided
 # config (e.g. Omarchy). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten afterwards
-# (.dotfiles-sync.yml's deploy[] force default).
+# (workbench.yml's deploy[] force default).
 command -v oh-my-posh &>/dev/null && return 0
 command -v starship &>/dev/null || return 0
 

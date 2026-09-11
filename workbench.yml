@@ -1,4 +1,4 @@
-# .dotfiles-sync.yml — workbench-shell
+# workbench.yml — workbench-shell
 #
 # Ecosystem module (workbench-core ARCHITECTURE.md §2/§3): opinionated
 # shell/editor/prompt layer. Meaningless standalone — depends on
@@ -7,7 +7,7 @@
 #
 # See contracts/manifest-spec.md (in workbench-core) for the full field
 # reference.
-version: 1
+version: 2
 branch: main
 
 core_api: ">=1.1 <2.0"

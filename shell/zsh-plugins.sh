@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # shell/zsh-plugins.sh — workbench-shell
 # Zsh plugins — autosuggestions and syntax highlighting. Registered at tier:
-# tools (.dotfiles-sync.yml), sourced unconditionally — self-guards on
+# tools (workbench.yml), sourced unconditionally — self-guards on
 # ZSH_VERSION.
 #
 # Plugin resolution order (first path that exists wins):
