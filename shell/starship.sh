@@ -3,15 +3,25 @@
 # starship prompt engine. Registered at tier: tools (workbench.yml),
 # sourced unconditionally — self-guards below: skips if oh-my-posh already
 # won the prompt-engine election (omp.sh loads first — register order in
-# workbench.yml), or if starship itself isn't present.
+# workbench.yml), or if starship itself isn't present — unless
+# WORKBENCH_OVERRIDE_PROMPT_ENGINE forces a specific engine (workbench-core
+# ARCHITECTURE.md §12 D48, see shell/overrides.sh).
 #
 # Uses whatever config is found at $STARSHIP_CONFIG or the XDG default
 # (~/.config/starship.toml) — including a pre-existing distro-provided
 # config (e.g. Omarchy). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten afterwards
 # (workbench.yml's deploy[] force default).
-command -v oh-my-posh &>/dev/null && return 0
-command -v starship &>/dev/null || return 0
+if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
+    [[ "${WORKBENCH_OVERRIDE_PROMPT_ENGINE}" == "starship" ]] || return 0
+    if ! command -v starship &>/dev/null; then
+        log_warn "starship: WORKBENCH_OVERRIDE_PROMPT_ENGINE=starship but starship is not installed — falling through"
+        return 0
+    fi
+else
+    command -v oh-my-posh &>/dev/null && return 0
+    command -v starship &>/dev/null || return 0
+fi
 
 case "${WORKBENCH_SHELL}" in
     bash|zsh)

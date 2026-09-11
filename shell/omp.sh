@@ -3,12 +3,22 @@
 # oh-my-posh prompt engine. Registered at tier: tools (workbench.yml),
 # sourced unconditionally — self-guards on presence and wins the
 # prompt-engine election over starship/oh-my-zsh by loading first (register
-# order in workbench.yml). workbench-core's loader has no hardcoded
+# order in workbench.yml), unless WORKBENCH_OVERRIDE_PROMPT_ENGINE forces a
+# different engine (workbench-core ARCHITECTURE.md §12 D48, see
+# shell/overrides.sh). workbench-core's loader has no hardcoded
 # prompt-election logic (principle 4) — each prompt-engine file here is
 # responsible for its own guard and for setting WORKBENCH_PROMPT_SET=true
 # (contracts/core-api.md's prompt-ownership convention) so the loader's own
 # fallback PS1/PROMPT is skipped.
-command -v oh-my-posh &>/dev/null || return 0
+if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
+    [[ "${WORKBENCH_OVERRIDE_PROMPT_ENGINE}" == "omp" ]] || return 0
+    if ! command -v oh-my-posh &>/dev/null; then
+        log_warn "oh-my-posh: WORKBENCH_OVERRIDE_PROMPT_ENGINE=omp but oh-my-posh is not installed — falling through"
+        return 0
+    fi
+else
+    command -v oh-my-posh &>/dev/null || return 0
+fi
 
 # ── Theme resolution ──────────────────────────────────────────────────────────
 # XDG-standard install location used by `oh-my-posh init` and the official
@@ -84,13 +94,14 @@ set-omp-theme() {
     log_debug "oh-my-posh: switched to theme '${1}' for this session"
 }
 
-# Permanently update OMP_THEME by exporting it from
-# ~/.config/workbench/local/settings.sh (D22's local-overrides file) — NOT by
-# editing this file in place. Unlike workbench-precursor (a single persistent
-# repo clone), this file lives inside workbench-core's immutable, per-sync
-# snapshot (ARCHITECTURE.md principle 6 / §12 D16) — editing it directly
-# would be silently discarded on the next sync, and would corrupt the
-# sync engine's manifest-hash tracking in the meantime.
+# Permanently update OMP_THEME by exporting it into this module's own
+# overrides file, ~/.config/workbench/local/overrides/shell.sh
+# (workbench-core ARCHITECTURE.md §12 D48) — NOT by editing this file in
+# place. Unlike workbench-precursor (a single persistent repo clone), this
+# file lives inside workbench-core's immutable, per-sync snapshot
+# (ARCHITECTURE.md principle 6 / §12 D16) — editing it directly would be
+# silently discarded on the next sync, and would corrupt the sync
+# engine's manifest-hash tracking in the meantime.
 set-omp-theme-permanent() {
     if [[ -z "${1}" ]]; then
         log_error "set-omp-theme-permanent: no theme name provided"
@@ -116,16 +127,17 @@ set-omp-theme-permanent() {
     eval "$(oh-my-posh init "${WORKBENCH_SHELL}" --config "${OMP_THEME_DIR}/${1}.omp.json")"
     OMP_THEME="${1}"
 
-    # Persist: update-or-append an OMP_THEME export in the local overrides file
-    local settings_file="${XDG_CONFIG_HOME:-${HOME}/.config}/workbench/local/settings.sh"
-    mkdir -p "$(dirname "${settings_file}")"
-    touch "${settings_file}"
-    if grep -q '^export OMP_THEME=' "${settings_file}" 2>/dev/null; then
+    # Persist: update-or-append an OMP_THEME export in this module's own
+    # overrides file (ARCHITECTURE.md §12 D48), not the shared settings.sh.
+    local overrides_file="${XDG_CONFIG_HOME:-${HOME}/.config}/workbench/local/overrides/shell.sh"
+    mkdir -p "$(dirname "${overrides_file}")"
+    touch "${overrides_file}"
+    if grep -q '^export OMP_THEME=' "${overrides_file}" 2>/dev/null; then
         local tmp; tmp="$(mktemp)"
-        sed "s/^export OMP_THEME=.*/export OMP_THEME=\"${1}\"/" "${settings_file}" > "${tmp}" \
-            && mv "${tmp}" "${settings_file}"
+        sed "s/^export OMP_THEME=.*/export OMP_THEME=\"${1}\"/" "${overrides_file}" > "${tmp}" \
+            && mv "${tmp}" "${overrides_file}"
     else
-        printf '\nexport OMP_THEME="%s"\n' "${1}" >> "${settings_file}"
+        printf '\nexport OMP_THEME="%s"\n' "${1}" >> "${overrides_file}"
     fi
-    log_info "oh-my-posh: theme '${1}' set permanently in ${settings_file}"
+    log_info "oh-my-posh: theme '${1}' set permanently in ${overrides_file}"
 }
