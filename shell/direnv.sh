@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shell/direnv.sh — workbench-shell
 # direnv configuration — shell hook integration. Registered at tier: tools
-# (.dotfiles-sync.yml), sourced unconditionally — self-guards on
+# (workbench.yml), sourced unconditionally — self-guards on
 # `command -v direnv`. Shell-aware: uses direnv hook bash/zsh depending on
 # WORKBENCH_SHELL.
 #
 # Config lives at ~/.config/direnv/direnv.toml (XDG default — direnv finds it
 # automatically, no DIRENV_CONFIG export needed). Deployed by this module's
-# files/direnv.toml (.dotfiles-sync.yml deploy[]), created once, never
+# files/direnv.toml (workbench.yml deploy[]), created once, never
 # overwritten — see this repo's README for what it sets.
 
 # ── Quieter output ────────────────────────────────────────────────────────

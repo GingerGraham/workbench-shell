@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # shell/zsh.sh — workbench-shell
 # Zsh-specific interactive shell configuration.
-# Registered at tier: core (.dotfiles-sync.yml), sourced unconditionally —
+# Registered at tier: core (workbench.yml), sourced unconditionally —
 # self-guards below since workbench-core's tier system has no shell-type
 # selector. Must not be sourced in bash — all constructs here are zsh-only.
 [[ -z "${ZSH_VERSION}" ]] && return 0

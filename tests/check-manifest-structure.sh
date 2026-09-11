@@ -1,22 +1,48 @@
 #!/usr/bin/env bash
 # tests/check-manifest-structure.sh — workbench-shell
 # Plain bash, numbered OK:/FAIL: checks, matching workbench-core's
-# tests/check-*.sh convention (no framework). Structural checks only.
+# tests/check-*.sh convention (no framework). Structural checks only —
+# lib/manifest/validate.sh (run separately by workbench-core's
+# module-ci.yml, ARCHITECTURE.md §12 D40) is the authoritative shape/
+# path-safety validator; this script's own value-add is the bash-3.2
+# compat scan below, which validate.sh doesn't do.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-MANIFEST="${REPO_ROOT}/.dotfiles-sync.yml"
 
 FAILED=0
 check_no=0
 ok()   { check_no=$((check_no + 1)); echo "OK:   [$check_no] $*"; }
 fail() { check_no=$((check_no + 1)); echo "FAIL: [$check_no] $*"; FAILED=$((FAILED + 1)); }
 
-[[ -f "${MANIFEST}" ]] && ok ".dotfiles-sync.yml exists" || fail ".dotfiles-sync.yml missing"
+# Manifest discovery, duplicated inline rather than sourced from
+# workbench-core — this script runs standalone in this module's own CI,
+# the same "must work without workbench-core installed alongside it"
+# constraint lib/manifest/validate.sh's own header documents for its
+# identical duplication (workbench-core ARCHITECTURE.md §12 D46). Checked
+# in precedence order; .dotfiles-sync.yml is accepted unconditionally,
+# the four new names only if they declare a top-level version: key.
+_MANIFEST_CANDIDATES="workbench.yml workbench.yaml wb.yml wb.yaml .dotfiles-sync.yml"
+MANIFEST=""
+for _name in ${_MANIFEST_CANDIDATES}; do
+    _candidate="${REPO_ROOT}/${_name}"
+    [[ -f "${_candidate}" ]] || continue
+    if [[ "${_name}" == ".dotfiles-sync.yml" ]]; then
+        MANIFEST="${_candidate}"
+        break
+    fi
+    grep -q '^version:' "${_candidate}" && { MANIFEST="${_candidate}"; break; }
+done
+
+if [[ -n "${MANIFEST}" ]]; then
+    ok "manifest found ($(basename "${MANIFEST}"))"
+else
+    fail "no manifest found (checked ${_MANIFEST_CANDIDATES})"
+fi
 
 for key in version core_api register deploy; do
-    if grep -q "^${key}:" "${MANIFEST}"; then
+    if [[ -n "${MANIFEST}" ]] && grep -q "^${key}:" "${MANIFEST}"; then
         ok "manifest declares '${key}:'"
     else
         fail "manifest missing '${key}:'"

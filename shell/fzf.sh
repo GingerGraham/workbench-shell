@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shell/fzf.sh — workbench-shell
 # fzf configuration — shell integration, default options, and fd-backed
-# commands. Registered at tier: tools (.dotfiles-sync.yml), sourced
+# commands. Registered at tier: tools (workbench.yml), sourced
 # unconditionally — self-guards on `command -v fzf`. Shell-aware: uses
 # fzf --zsh or fzf --bash depending on WORKBENCH_SHELL.
 

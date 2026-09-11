@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shell/bash.sh — workbench-shell
 # Bash-specific interactive shell configuration.
-# Registered at tier: core (.dotfiles-sync.yml), sourced unconditionally —
+# Registered at tier: core (workbench.yml), sourced unconditionally —
 # self-guards below since workbench-core's tier system has no shell-type
 # selector (only platform/distro filename selectors — contracts/core-api.md).
 # Must not contain zsh-specific constructs.

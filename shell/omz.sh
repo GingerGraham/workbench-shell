@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # shell/omz.sh — workbench-shell
-# oh-my-zsh prompt/framework. Registered at tier: tools (.dotfiles-sync.yml),
+# oh-my-zsh prompt/framework. Registered at tier: tools (workbench.yml),
 # sourced unconditionally — self-guards below: only proceeds when oh-my-posh
 # and starship both lost the prompt-engine election (they load first —
-# register order in .dotfiles-sync.yml), ~/.oh-my-zsh exists, and the
+# register order in workbench.yml), ~/.oh-my-zsh exists, and the
 # current shell is zsh. bash-sourcing this file is a no-op.
 [[ -z "${ZSH_VERSION}" ]] && return 0
 command -v oh-my-posh &>/dev/null && return 0

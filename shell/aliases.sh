@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shell/aliases.sh — workbench-shell
-# Core aliases — general-purpose; registered at tier: core (.dotfiles-sync.yml),
+# Core aliases — general-purpose; registered at tier: core (workbench.yml),
 # sourced unconditionally on every shell start. Tool-specific aliases live in
 # their own owning module (git/gpg/etc.) guarded by command -v.
 # Ported from workbench-precursor's core/aliases.sh, unchanged apart from

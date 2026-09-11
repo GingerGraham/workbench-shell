@@ -4,6 +4,13 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **Manifest renamed** from `.dotfiles-sync.yml` to `workbench.yml`
+  (`version: 2`) — no functional change, identical field set
+  (workbench-core ARCHITECTURE.md §12 D46). Prompt-engine election
+  overrides land in a separate, immediately-following change.
+
 ## [0.2.0] - 2026-09-09
 
 ### Added
