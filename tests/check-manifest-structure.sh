@@ -49,14 +49,16 @@ for key in version core_api register deploy; do
     fi
 done
 
-while IFS= read -r src; do
-    [[ -z "${src}" ]] && continue
-    if [[ -f "${REPO_ROOT}/${src}" ]]; then
-        ok "referenced file exists: ${src}"
-    else
-        fail "manifest references missing file: ${src}"
-    fi
-done < <(grep -E '^[[:space:]]*(-[[:space:]]*)?src:' "${MANIFEST}" | sed -E 's/^[[:space:]]*-?[[:space:]]*src:[[:space:]]*//')
+if [[ -n "${MANIFEST}" ]]; then
+    while IFS= read -r src; do
+        [[ -z "${src}" ]] && continue
+        if [[ -f "${REPO_ROOT}/${src}" ]]; then
+            ok "referenced file exists: ${src}"
+        else
+            fail "manifest references missing file: ${src}"
+        fi
+    done < <(grep -E '^[[:space:]]*(-[[:space:]]*)?src:' "${MANIFEST}" | sed -E 's/^[[:space:]]*-?[[:space:]]*src:[[:space:]]*//')
+fi
 
 declare -a _bash32_patterns=(
     "declare -A (associative arrays, bash 4+)|declare[[:space:]]+-A"
