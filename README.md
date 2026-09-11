@@ -45,6 +45,12 @@ file is self-electing:
 - `shell/omz.sh` — no-ops if `oh-my-posh` or `starship` is present;
   otherwise proceeds if the shell is zsh and `~/.oh-my-zsh` exists.
 
+Set `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to `omp`, `starship`, or `omz` in
+`~/.config/workbench/local/overrides/shell.sh` (see below) to force a
+specific engine regardless of what's installed or this priority order.
+If the named engine isn't actually installed, the override falls through
+to no prompt engine at all — never silently back to this election.
+
 The manifest lists them in this priority order (`omp` → `starship` → `omz`)
 so, within workbench-shell's own `tier: tools` registration, they're sourced
 in that order — though the guards above make the outcome correct regardless
@@ -55,28 +61,30 @@ Whichever engine wins sets `WORKBENCH_PROMPT_ENGINE` (informational) and
 `contracts/core-api.md`'s prompt-ownership convention) so the loader skips
 its own bare fallback prompt.
 
-## `set-omp-theme-permanent` and immutable snapshots
+## Overriding this module's defaults
 
-`workbench-precursor`'s `set-omp-theme-permanent` edited `tools/omp.sh` in
-place via `sed -i` — that file was a real, persistent path inside the
-donor's single git clone. That approach doesn't work under
-`workbench-core`'s distribution model: this module's deployed files live
-inside an immutable, per-sync snapshot
+This module's deployed files live inside an immutable, per-sync snapshot
 (`${XDG_DATA_HOME}/workbench/modules/shell/current/`, ARCHITECTURE.md
 principle 6 / §12 D16) — editing them in place is silently discarded on
 the next sync, and would corrupt the sync engine's manifest-hash tracking
-in the meantime.
+in the meantime. `workbench-precursor`'s `set-omp-theme-permanent` used to
+work around this by editing `tools/omp.sh` directly via `sed -i`, back
+when that file was a real, persistent path in the donor's single git
+clone — that doesn't work here.
 
-`set-omp-theme-permanent` here instead writes (or updates) an
-`export OMP_THEME="..."` line in
-`~/.config/workbench/local/settings.sh` (the D22 local-overrides file,
-sourced after every module's own registered content) — this persists
-correctly and survives every future sync.
+Instead, this module ships `shell/overrides.sh`
+(`overrides_src`, workbench-core ARCHITECTURE.md §12 D48) — deployed once,
+to `~/.config/workbench/local/overrides/shell.sh`, and never touched
+again by the sync engine. Edit it directly for `WORKBENCH_OVERRIDE_PROMPT_ENGINE`,
+`OMP_THEME`, `ZSH_THEME`, oh-my-zsh's `plugins`, or anything else a
+`shell/*.sh` file here reads with a default. `set-omp-theme-permanent`
+writes into this same file for you, rather than you editing it by hand.
 
 ## Files
 
 | File | Deployed to | Notes |
 |------|-------------|-------|
+| `shell/overrides.sh` | `~/.config/workbench/local/overrides/shell.sh` | Deployed once, never overwritten — edit freely. Ships fully commented; see [Overriding this module's defaults](#overriding-this-modules-defaults) |
 | `files/tmux.conf` | `~/.config/tmux/tmux.conf` | Symlinked — kept in sync on every update |
 | `files/vimrc` | `~/.vimrc` | Symlinked — kept in sync on every update |
 | `files/starship.toml` | `~/.config/starship.toml` | Deployed once, never overwritten — edit freely |

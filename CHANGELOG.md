@@ -4,6 +4,21 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **Prompt-engine election is now overridable** — set
+  `WORKBENCH_OVERRIDE_PROMPT_ENGINE` (`omp`, `starship`, or `omz`) in
+  `~/.config/workbench/local/overrides/shell.sh` to force a specific
+  engine regardless of what's installed or the register-order election.
+  Falls through to no prompt engine (never silently back to the
+  election) if the named engine isn't actually installed. New
+  `overrides_src: shell/overrides.sh` ships a commented template for
+  this plus `OMP_THEME`/`ZSH_THEME` (workbench-core ARCHITECTURE.md §12
+  D48). `ZSH_THEME` and oh-my-zsh's `plugins` array are no longer
+  hardcoded, unconditional literals — both now respect a pre-set value.
+  `set-omp-theme-permanent` now persists into this new overrides file
+  instead of the shared `~/.config/workbench/local/settings.sh`.
+
 ### Changed
 
 - **Manifest renamed** from `.dotfiles-sync.yml` to `workbench.yml`
