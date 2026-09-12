@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-12
+
 ### Changed
 
 - **`tmux.conf`/`vimrc` are now deployed once and freely editable**
