@@ -4,6 +4,22 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **`tmux.conf`/`vimrc` are now deployed once and freely editable**
+  (`mode: copy`), matching `starship.toml`/`direnv.toml` — previously
+  `mode: link`, permanently synced with the module and impossible to
+  customise. Restore either to the workbench default any time with `wb
+  module reset shell tmux.conf` / `wb module reset shell .vimrc`
+  (workbench-core ARCHITECTURE.md §12 D51).
+
+  **Migration for existing installs:** this does not happen
+  automatically — an ordinary sync leaves a pre-existing `mode: link`
+  destination exactly as it was, deliberately, so it can't silently
+  discard a change made through the old symlink. Run `wb module reset
+  shell tmux.conf` and `wb module reset shell .vimrc` once, by hand, to
+  convert them to real, detached, editable files.
+
 ## [0.3.0] - 2026-09-11
 
 ### Added

@@ -26,9 +26,8 @@ wb install --bundle workstation
 - `direnv` and `fzf` shell integration (`shell/direnv.sh`/`shell/fzf.sh`),
   plus `direnv-init-project` to scaffold a starter `.envrc`.
 - `EDITOR`/`VISUAL`/`PAGER`/`BAT_THEME` defaults (`shell/editors.sh`).
-- `tmux.conf` and `vimrc` (symlinked into place, kept in sync on every
-  update) and default `starship.toml`/`direnv.toml` (deployed once, never
-  overwritten afterwards — edit freely).
+- `tmux.conf`, `vimrc`, `starship.toml`, and `direnv.toml` — all deployed
+  once, never overwritten afterwards — edit freely.
 - `install-oh-my-posh`, `install-starship`, `install-oh-my-zsh`,
   `install-zsh`, `install-zsh-default-shell`, `install-zsh-plugins`,
   `install-direnv`, `install-fzf`, `install-neovim` — via `wb tools update`.
@@ -80,13 +79,33 @@ again by the sync engine. Edit it directly for `WORKBENCH_OVERRIDE_PROMPT_ENGINE
 `shell/*.sh` file here reads with a default. `set-omp-theme-permanent`
 writes into this same file for you, rather than you editing it by hand.
 
+Made a mess of `starship.toml`, `direnv.toml`, `tmux.conf`, or `vimrc`
+and just want the workbench default back? `wb module reset shell
+<name>` (workbench-core ARCHITECTURE.md §12 D51) force-redeploys that
+one file from this module's current snapshot — `wb module reset shell
+all` for every one of them at once. Always confirms first; this
+discards whatever you had. Note the leading dot for `.vimrc` — the
+target is the deployed file's basename, and `~/.vimrc`'s basename
+includes it. This doesn't cover `shell/overrides.sh` above — that's a
+separate mechanism (`overrides_src`, not `deploy[]`), and there's
+nothing to "reset" it to, since it's yours from the moment it's first
+deployed.
+
+**If you already had this module installed before `tmux.conf`/`vimrc`
+moved from symlinked to deployed-once-editable:** an ordinary sync does
+*not* migrate a pre-existing symlink for you — it's left exactly as it
+was, deliberately, so it can't silently discard whatever you'd done
+through that symlink. Run `wb module reset shell tmux.conf` and `wb
+module reset shell .vimrc` once, by hand, to convert them to real,
+detached, editable files.
+
 ## Files
 
 | File | Deployed to | Notes |
 |------|-------------|-------|
 | `shell/overrides.sh` | `~/.config/workbench/local/overrides/shell.sh` | Deployed once, never overwritten — edit freely. Ships fully commented; see [Overriding this module's defaults](#overriding-this-modules-defaults) |
-| `files/tmux.conf` | `~/.config/tmux/tmux.conf` | Symlinked — kept in sync on every update |
-| `files/vimrc` | `~/.vimrc` | Symlinked — kept in sync on every update |
+| `files/tmux.conf` | `~/.config/tmux/tmux.conf` | Deployed once, never overwritten — edit freely |
+| `files/vimrc` | `~/.vimrc` | Deployed once, never overwritten — edit freely |
 | `files/starship.toml` | `~/.config/starship.toml` | Deployed once, never overwritten — edit freely |
 | `files/direnv.toml` | `~/.config/direnv/direnv.toml` | Deployed once, never overwritten — edit freely. Ships with `[whitelist]` commented out: direnv does not expand `~` in `direnv.toml`, so a default like `~/Projects` would silently never match anything. Uncomment it yourself with your `workbench-git` `projects_base`, fully expanded (e.g. `/home/you/Projects`), if you want per-project `direnv allow` prompts skipped |
 

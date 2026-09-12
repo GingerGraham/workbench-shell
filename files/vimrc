@@ -1,5 +1,6 @@
 " vimrc
-" Managed by workbench-shell — symlinked to ~/.vimrc
+" Deployed once by workbench-shell to ~/.vimrc, never overwritten
+" afterwards. Edit freely; a later sync will not touch this file.
 " Intentionally minimal: works on any server with a standard vim install.
 " For the full editor experience, use neovim (nvim-config repo).
 
