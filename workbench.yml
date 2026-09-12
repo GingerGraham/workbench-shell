@@ -19,10 +19,10 @@ overrides_src: shell/overrides.sh
 deploy:
   - src: files/tmux.conf
     dest: ~/.config/tmux/tmux.conf
-    mode: link
+    mode: copy
   - src: files/vimrc
     dest: ~/.vimrc
-    mode: link
+    mode: copy
   - src: files/starship.toml
     dest: ~/.config/starship.toml
     mode: copy
