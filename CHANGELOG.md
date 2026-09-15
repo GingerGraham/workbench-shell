@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-15
+
 ### Added
 
 - **`nvim` added to `shell/editors.sh`'s `VISUAL` election** — new
