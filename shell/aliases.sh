@@ -120,6 +120,31 @@ if [[ -n "${BASH_VERSION}" ]]; then
     alias bashreload="exec bash"
 fi
 
+# ── functions ────────────────────────────────────────────────────────────
+
+# List installed Python 3.x interpreters and their versions. Ported from
+# workbench-precursor's core/functions.sh, unchanged.
+get-python-versions() {
+    log_info "Python versions found:"
+    for version in /usr/bin/python3*; do
+        [[ "${version}" == *-config ]] && continue
+        echo "$(basename "${version}"): $("${version}" --version 2>&1)"
+    done
+}
+
+# Public IPv4/IPv6 lookup — dig if available, curl (icanhazip.com)
+# otherwise. Ported from workbench-precursor's core/functions.sh,
+# unchanged.
+get-public-ip() {
+    if command -v dig &>/dev/null; then
+        echo "IPv4: $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{print $2}')"
+        echo "IPv6: $(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{print $2}')"
+    else
+        echo "IPv4: $(curl -s https://ipv4.icanhazip.com)"
+        echo "IPv6: $(curl -s https://ipv6.icanhazip.com)"
+    fi
+}
+
 get-shell-functions() {
     local _dir; _dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local -a _files=(

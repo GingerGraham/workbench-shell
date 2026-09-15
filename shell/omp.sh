@@ -10,6 +10,8 @@
 # responsible for its own guard and for setting WORKBENCH_PROMPT_SET=true
 # (contracts/core-api.md's prompt-ownership convention) so the loader's own
 # fallback PS1/PROMPT is skipped.
+[[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
+
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
     [[ "${WORKBENCH_OVERRIDE_PROMPT_ENGINE}" == "omp" ]] || return 0
     if ! command -v oh-my-posh &>/dev/null; then

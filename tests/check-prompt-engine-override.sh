@@ -40,14 +40,15 @@ log_debug() { :; }
 # shellcheck disable=SC2317 # called indirectly by the sourced election guards
 log_error() { echo "ERROR: $*"; }
 
-# run_election <bindir> [override] [omz-present]
+# run_election <bindir> [override] [omz-present] [plain-shell]
 # Sources all three election guard files, in register order, in a fresh
 # subshell — a controlled PATH decides which of oh-my-posh/starship are
 # "installed", omz-present (any non-empty value) creates a working
-# ~/.oh-my-zsh/oh-my-zsh.sh stub. Prints the resulting WORKBENCH_PROMPT_ENGINE,
+# ~/.oh-my-zsh/oh-my-zsh.sh stub, plain-shell (any non-empty value) sets
+# WORKBENCH_PLAIN_SHELL=true. Prints the resulting WORKBENCH_PROMPT_ENGINE,
 # or "none" if nothing elected.
 run_election() {
-    local bindir="$1" override="${2:-}" omz_present="${3:-}"
+    local bindir="$1" override="${2:-}" omz_present="${3:-}" plain_shell="${4:-}"
     (
         PATH="${bindir}:/usr/bin:/bin"
         WORKBENCH_SHELL=bash
@@ -59,6 +60,7 @@ run_election() {
             echo ':' > "${HOME}/.oh-my-zsh/oh-my-zsh.sh"
         fi
         [[ -n "${override}" ]] && WORKBENCH_OVERRIDE_PROMPT_ENGINE="${override}"
+        [[ -n "${plain_shell}" ]] && WORKBENCH_PLAIN_SHELL=true
         # shellcheck disable=SC1091
         source "${REPO_ROOT}/shell/omp.sh"
         # shellcheck disable=SC1091
@@ -102,6 +104,15 @@ result="$(run_election "${WORK}/bin" "omz" "true" | tail -1)"
 [[ "${result}" == "omz" ]] \
     && ok "override=omz wins over both omp and starship" \
     || fail "override=omz: expected omz, got '${result}'"
+
+# 5. Plain mode set, both omp and starship "installed", no override —
+#    nothing elects; the loader's own fallback provides the actual plain
+#    PS1, which is outside what this election test covers.
+result="$(run_election "${WORK}/bin" "" "true" "true" | tail -1)"
+# shellcheck disable=SC2015 # ok()/fail() never fail; not an if/then/else
+[[ "${result}" == "none" ]] \
+    && ok "WORKBENCH_PLAIN_SHELL=true: nothing elects even with omp/starship present" \
+    || fail "plain shell: expected none, got '${result}'"
 
 echo
 if [[ "${FAILED}" -eq 0 ]]; then

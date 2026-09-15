@@ -10,6 +10,12 @@ All notable changes to `workbench-shell` are documented here.
   candidate between `code`/`code-insiders` (GUI sessions only) and the
   bare `vim` fallback, guarded on `nvim` actually being installed, and
   checked regardless of whether a GUI session is present. Part of #2.
+- **`open-workspace`** (`shell/editors.sh`) — VS Code workspace picker,
+  ported from workbench-precursor's `core/functions.sh`. Closes #8 (in
+  part — `plain-shell`/`pretty-shell` land in `workbench-core` instead,
+  see its own CHANGELOG).
+- **`get-python-versions`, `get-public-ip`** (`shell/aliases.sh`) — ported
+  from workbench-precursor's `core/functions.sh`. Closes #8 (in part).
 
 ### Fixed
 
@@ -18,6 +24,11 @@ All notable changes to `workbench-shell` are documented here.
   when the user had already set one via `overrides.sh` — fixed to check
   first, election only runs when `VISUAL` is genuinely unset. Documented
   in `overrides.sh` and `README.md`. Closes #2.
+- **Plain-mode prompt guard** (`shell/omp.sh`/`starship.sh`/`omz.sh`) —
+  each now no-ops when `WORKBENCH_PLAIN_SHELL=true`, so `workbench-core`'s
+  new `plain-shell` function actually produces a bare prompt instead of
+  being silently overwritten by whichever engine's render hook was
+  already live.
 
 ## [0.4.1] - 2026-09-15
 
