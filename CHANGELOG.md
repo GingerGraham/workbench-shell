@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-15
+
 ### Added
 
 - **Agent-instruction files** (`AGENTS.md`, `CLAUDE.md`,
