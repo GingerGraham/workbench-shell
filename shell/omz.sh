@@ -8,6 +8,7 @@
 # engine (workbench-core ARCHITECTURE.md §12 D48, see shell/overrides.sh).
 # bash-sourcing this file is a no-op.
 [[ -z "${ZSH_VERSION}" ]] && return 0
+[[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
     [[ "${WORKBENCH_OVERRIDE_PROMPT_ENGINE}" == "omz" ]] || return 0
     if [[ ! -d "${HOME}/.oh-my-zsh" ]]; then

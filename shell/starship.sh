@@ -12,6 +12,8 @@
 # config (e.g. Omarchy). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten afterwards
 # (workbench.yml's deploy[] force default).
+[[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
+
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
     [[ "${WORKBENCH_OVERRIDE_PROMPT_ENGINE}" == "starship" ]] || return 0
     if ! command -v starship &>/dev/null; then

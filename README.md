@@ -25,7 +25,9 @@ wb install --bundle workstation
 - zsh plugins: autosuggestions + syntax highlighting (`shell/zsh-plugins.sh`).
 - `direnv` and `fzf` shell integration (`shell/direnv.sh`/`shell/fzf.sh`),
   plus `direnv-init-project` to scaffold a starter `.envrc`.
-- `EDITOR`/`VISUAL`/`PAGER`/`BAT_THEME` defaults (`shell/editors.sh`).
+- `EDITOR`/`VISUAL`/`PAGER`/`BAT_THEME` defaults, with a self-electing
+  `VISUAL` priority order — `code-insiders > code > nvim > vim`
+  (`shell/editors.sh`).
 - `tmux.conf`, `vimrc`, `starship.toml`, and `direnv.toml` — all deployed
   once, never overwritten afterwards — edit freely.
 - `install-oh-my-posh`, `install-starship`, `install-oh-my-zsh`,
@@ -49,6 +51,12 @@ Set `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to `omp`, `starship`, or `omz` in
 specific engine regardless of what's installed or this priority order.
 If the named engine isn't actually installed, the override falls through
 to no prompt engine at all — never silently back to this election.
+
+`VISUAL` has its own priority order — `code-insiders > code > nvim >
+vim` (GUI-only for the first two; `nvim` and `vim` are checked
+regardless of `DISPLAY`/`WAYLAND_DISPLAY`) — set by `shell/editors.sh`.
+It already has a natural escape hatch: set `VISUAL` yourself in
+`overrides.sh` and it wins outright, no `WORKBENCH_OVERRIDE_*` needed.
 
 The manifest lists them in this priority order (`omp` → `starship` → `omz`)
 so, within workbench-shell's own `tier: tools` registration, they're sourced
@@ -75,8 +83,9 @@ Instead, this module ships `shell/overrides.sh`
 (`overrides_src`, workbench-core ARCHITECTURE.md §12 D48) — deployed once,
 to `~/.config/workbench/local/overrides/shell.sh`, and never touched
 again by the sync engine. Edit it directly for `WORKBENCH_OVERRIDE_PROMPT_ENGINE`,
-`OMP_THEME`, `ZSH_THEME`, oh-my-zsh's `plugins`, or anything else a
-`shell/*.sh` file here reads with a default. `set-omp-theme-permanent`
+`OMP_THEME`, `ZSH_THEME`, oh-my-zsh's `plugins`, `VISUAL`/`EDITOR`, or
+anything else a `shell/*.sh` file here reads with a default.
+`set-omp-theme-permanent`
 writes into this same file for you, rather than you editing it by hand.
 
 Made a mess of `starship.toml`, `direnv.toml`, `tmux.conf`, or `vimrc`
