@@ -44,17 +44,18 @@ _omp-install-linux() {
         log_error "oh-my-posh: mktemp failed — cannot create a temp file for the install script"
         return 1
     fi
+    local dl_rc=0
     if command -v curl &>/dev/null; then
-        _download_file_robust "https://ohmyposh.dev/install.sh" "${tmp_script}"
+        _download_file_robust "https://ohmyposh.dev/install.sh" "${tmp_script}" || dl_rc=1
     elif command -v wget &>/dev/null; then
-        wget -qO "${tmp_script}" https://ohmyposh.dev/install.sh
+        wget -qO "${tmp_script}" https://ohmyposh.dev/install.sh || dl_rc=1
     else
         log_error "curl or wget required to install oh-my-posh"
         rm -f "${tmp_script}"
         return 1
     fi
 
-    if [[ ! -s "${tmp_script}" ]]; then
+    if [[ "${dl_rc}" -ne 0 || ! -s "${tmp_script}" ]]; then
         log_error "oh-my-posh: install script download failed or was empty"
         rm -f "${tmp_script}"
         return 1
