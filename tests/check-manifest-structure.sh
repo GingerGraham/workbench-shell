@@ -67,18 +67,41 @@ declare -a _bash32_patterns=(
     "\${var,,} / \${var^^} case conversion (bash 4+)|\\\$\\{[a-zA-Z_][a-zA-Z0-9_]*(,,|\\^\\^)"
     "declare -n nameref (bash 4.3+)|declare[[:space:]]+-n"
 )
+# Per-pattern extra excluded basename (index-aligned with
+# _bash32_patterns; empty string = no extra exclusion), kept as a
+# parallel array rather than packed into the same delimited string as
+# the pattern above — several of these patterns contain literal "|"
+# themselves (e.g. the mapfile/readarray alternation), which would
+# collide with a shared field delimiter.
+declare -a _bash32_extra_excludes=(
+    ""
+    "editors.sh"
+    ""
+    ""
+    ""
+)
 # bash.sh's own `shopt -s globstar 2>/dev/null || true` is an interactive-
 # shell convenience with a guarded fallback, not part of a bash-3.2-only
 # Core API surface — excluded from this scan the same way workbench-core's
 # own check-bash32-compat.sh excludes prose mentions in comments, since this
 # repo's shell/ intentionally contains bash-version-conditional interactive
-# tweaks (bash.sh/zsh.sh) rather than portable Core API code.
-for entry in "${_bash32_patterns[@]}"; do
+# tweaks (bash.sh/zsh.sh) rather than portable Core API code. editors.sh's
+# open-workspace() is the same class of exception for mapfile specifically:
+# it only calls mapfile behind its own `command -v mapfile` guard, with a
+# bash-3.2-safe `$(...)` array-assignment fallback otherwise — excluded
+# only from the mapfile/readarray pattern above (via
+# _bash32_extra_excludes), so editors.sh still gets scanned for every
+# other bash-4+ construct.
+for _i in "${!_bash32_patterns[@]}"; do
+    entry="${_bash32_patterns[${_i}]}"
+    extra_exclude="${_bash32_extra_excludes[${_i}]}"
     desc="${entry%%|*}"
     pattern="${entry#*|}"
     hit=""
     while IFS= read -r -d '' f; do
-        [[ "$(basename "${f}")" == "bash.sh" ]] && continue
+        base="$(basename "${f}")"
+        [[ "${base}" == "bash.sh" ]] && continue
+        [[ -n "${extra_exclude}" && "${base}" == "${extra_exclude}" ]] && continue
         grep -vE '^[[:space:]]*#' "${f}" | grep -qE "${pattern}" && hit="${hit}${f}\n"
     done < <(find "${REPO_ROOT}/shell" -type f -print0 2>/dev/null)
     if [[ -n "${hit}" ]]; then
