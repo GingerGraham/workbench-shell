@@ -39,7 +39,11 @@ _omp-install-linux() {
         fi
     fi
 
-    local tmp_script; tmp_script="$(mktemp)"
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "oh-my-posh: mktemp failed — cannot create a temp file for the install script"
+        return 1
+    fi
     if command -v curl &>/dev/null; then
         _download_file_robust "https://ohmyposh.dev/install.sh" "${tmp_script}"
     elif command -v wget &>/dev/null; then
@@ -102,7 +106,11 @@ _starship-install-linux() {
     mkdir -p "${install_dir}"
     # The official script overwrites the binary in place, so this call
     # serves as both the initial install and subsequent updates.
-    local tmp_script; tmp_script="$(mktemp)"
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "starship: mktemp failed — cannot create a temp file for the install script"
+        return 1
+    fi
     if ! _download_file_robust "https://starship.rs/install.sh" "${tmp_script}" || [[ ! -s "${tmp_script}" ]]; then
         log_error "starship: install script download failed or was empty"
         rm -f "${tmp_script}"
@@ -404,7 +412,11 @@ _direnv-install-script() {
     command -v curl &>/dev/null || { log_error "curl is required for the fallback install"; return 1; }
     mkdir -p "${HOME}/.local/bin"
 
-    local tmp_script; tmp_script="$(mktemp)"
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "direnv: mktemp failed — cannot create a temp file for the install script"
+        return 1
+    fi
     if ! _download_file_robust "https://direnv.net/install.sh" "${tmp_script}" || [[ ! -s "${tmp_script}" ]]; then
         log_error "direnv: install script download failed or was empty"
         rm -f "${tmp_script}"
