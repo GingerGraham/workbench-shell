@@ -39,14 +39,32 @@ _omp-install-linux() {
         fi
     fi
 
-    if command -v curl &>/dev/null; then
-        curl -s https://ohmyposh.dev/install.sh | bash
-    elif command -v wget &>/dev/null; then
-        wget -qO- https://ohmyposh.dev/install.sh | bash
-    else
-        log_error "curl or wget required to install oh-my-posh"
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "oh-my-posh: mktemp failed — cannot create a temp file for the install script"
         return 1
     fi
+    local dl_rc=0
+    if command -v curl &>/dev/null; then
+        _download_file_robust "https://ohmyposh.dev/install.sh" "${tmp_script}" || dl_rc=1
+    elif command -v wget &>/dev/null; then
+        wget -qO "${tmp_script}" https://ohmyposh.dev/install.sh || dl_rc=1
+    else
+        log_error "curl or wget required to install oh-my-posh"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+
+    if [[ "${dl_rc}" -ne 0 || ! -s "${tmp_script}" ]]; then
+        log_error "oh-my-posh: install script download failed or was empty"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+
+    bash "${tmp_script}"
+    local rc=$?
+    rm -f "${tmp_script}"
+    return "${rc}"
 }
 
 _omp-install-macos() {
@@ -89,12 +107,25 @@ _starship-install-linux() {
     mkdir -p "${install_dir}"
     # The official script overwrites the binary in place, so this call
     # serves as both the initial install and subsequent updates.
-    if curl -sS https://starship.rs/install.sh | sh -s -- -y -b "${install_dir}"; then
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "starship: mktemp failed — cannot create a temp file for the install script"
+        return 1
+    fi
+    if ! _download_file_robust "https://starship.rs/install.sh" "${tmp_script}" || [[ ! -s "${tmp_script}" ]]; then
+        log_error "starship: install script download failed or was empty"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+
+    if sh "${tmp_script}" -y -b "${install_dir}"; then
         log_info "starship installed/updated in ${install_dir}"
     else
         log_error "starship install/update failed. Check your installation or try updating manually."
+        rm -f "${tmp_script}"
         return 1
     fi
+    rm -f "${tmp_script}"
 }
 
 _starship-install-macos() {
@@ -381,7 +412,20 @@ _direnv-install-script() {
     log_info "Falling back to the official direnv install script..."
     command -v curl &>/dev/null || { log_error "curl is required for the fallback install"; return 1; }
     mkdir -p "${HOME}/.local/bin"
-    curl -sfL https://direnv.net/install.sh | bin_path="${HOME}/.local/bin" bash
+
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "direnv: mktemp failed — cannot create a temp file for the install script"
+        return 1
+    fi
+    if ! _download_file_robust "https://direnv.net/install.sh" "${tmp_script}" || [[ ! -s "${tmp_script}" ]]; then
+        log_error "direnv: install script download failed or was empty"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+    bin_path="${HOME}/.local/bin" bash "${tmp_script}"
+    rm -f "${tmp_script}"
+
     [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]] \
         && log_warn "${HOME}/.local/bin is not on PATH — add it in ~/.config/workbench/local/settings.sh"
 }

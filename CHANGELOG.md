@@ -18,6 +18,17 @@ All notable changes to `workbench-shell` are documented here.
   piloted on `workbench-git` first. See `workbench-core`'s
   `docs/decisions-log.md` D60.
 
+### Fixed
+
+- **`install-oh-my-posh`, `install-starship`, and the direnv install-script
+  fallback no longer pipe a downloaded install script straight into
+  `bash`/`sh`** — each now downloads to a temp file first (via
+  `_download_file_robust` where a curl path is available), verifies the
+  download landed and is non-empty, then executes the file. Closes a
+  `scan-patterns` CI finding (remote-script-execution pattern); a
+  truncated or failed download can no longer be silently piped into a
+  shell.
+
 ## [0.4.0] - 2026-09-12
 
 ### Changed
