@@ -4,6 +4,21 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`nvim` added to `shell/editors.sh`'s `VISUAL` election** — new
+  candidate between `code`/`code-insiders` (GUI sessions only) and the
+  bare `vim` fallback, guarded on `nvim` actually being installed, and
+  checked regardless of whether a GUI session is present. Part of #2.
+
+### Fixed
+
+- **`shell/editors.sh` respects a pre-set `VISUAL`.** The election
+  previously overwrote `VISUAL` unconditionally in its GUI branch even
+  when the user had already set one via `overrides.sh` — fixed to check
+  first, election only runs when `VISUAL` is genuinely unset. Documented
+  in `overrides.sh` and `README.md`. Closes #2.
+
 ## [0.4.1] - 2026-09-15
 
 ### Added

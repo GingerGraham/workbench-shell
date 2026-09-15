@@ -5,18 +5,32 @@
 # workbench-precursor's env/10-editors.sh — WORKBENCH_OS (Core API) replaces
 # DOTFILES_OS.
 
-if [[ -n "${DISPLAY}" || -n "${WAYLAND_DISPLAY}" || "${WORKBENCH_OS}" == "Mac" ]]; then
-    # Prefer code/code-insiders when a display is available
-    if [[ -x "$(command -v code-insiders 2>/dev/null)" ]]; then
-        export VISUAL="code-insiders --wait"
-    elif [[ -x "$(command -v code 2>/dev/null)" ]]; then
-        export VISUAL="code --wait"
+# Respect a VISUAL already set upstream (this module's own overrides.sh,
+# or workbench-core's settings.sh — both source earlier than tier: env)
+# before running the election below. VISUAL already has a natural
+# override path (module-authoring.md's "already has an escape hatch"
+# case) — no WORKBENCH_OVERRIDE_* needed for it.
+#
+# Priority: code-insiders/code (GUI sessions only) > nvim > vim. nvim
+# isn't GUI-specific, so it's checked regardless of DISPLAY/WAYLAND_DISPLAY
+# — it's the fallback for "no GUI editor won, but something better than
+# bare vim is installed".
+if [[ -z "${VISUAL:-}" ]]; then
+    _gui_available=false
+    [[ -n "${DISPLAY}" || -n "${WAYLAND_DISPLAY}" || "${WORKBENCH_OS}" == "Mac" ]] && _gui_available=true
+
+    if [[ "${_gui_available}" == "true" ]] && [[ -x "$(command -v code-insiders 2>/dev/null)" ]]; then
+        VISUAL="code-insiders --wait"
+    elif [[ "${_gui_available}" == "true" ]] && [[ -x "$(command -v code 2>/dev/null)" ]]; then
+        VISUAL="code --wait"
+    elif [[ -x "$(command -v nvim 2>/dev/null)" ]]; then
+        VISUAL="nvim"
     else
-        export VISUAL="${VISUAL:-vim}"
+        VISUAL="vim"
     fi
-else
-    export VISUAL="${VISUAL:-vim}"
+    unset _gui_available
 fi
+export VISUAL
 
 export EDITOR="${EDITOR:-vim}"
 

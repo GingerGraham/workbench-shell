@@ -25,3 +25,8 @@
 
 # oh-my-zsh theme name.
 # export ZSH_THEME="robbyrussell"
+
+# Editor of choice. Wins outright over the code-insiders > code > nvim >
+# vim election in shell/editors.sh, whether or not the named editor is
+# what the election would have picked, GUI session or not.
+# export VISUAL="nvim"
