@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-16
+
 ### Fixed
 
 - **`open-workspace` (`shell/editors.sh`) no longer listed when unusable.**
