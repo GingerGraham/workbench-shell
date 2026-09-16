@@ -4,6 +4,16 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`open-workspace` (`shell/editors.sh`) no longer listed when unusable.**
+  Added `_open-workspace-available()`, a hand-written predicate mirroring
+  the function's own `code`/`code-insiders` OR-check, so listings hide it
+  on hosts with neither installed instead of showing a function that
+  would immediately fail its own preflight. One module's slice of the
+  shared `_<name>-available` predicate convention landing in
+  `workbench-core` (`lib/core/functions.sh`).
+
 ## [0.5.0] - 2026-09-15
 
 ### Added
