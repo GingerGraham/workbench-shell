@@ -45,6 +45,10 @@ fi
 
 # ── functions ────────────────────────────────────────────────────────────
 
+_open-workspace-available() {
+    command -v code &>/dev/null || command -v code-insiders &>/dev/null
+}
+
 # Interactively pick and open a *.code-workspace file from a directory
 # (default: ~/Development/workspaces). Ported from workbench-precursor's
 # core/functions.sh — unchanged apart from the bash-3.2 mapfile fallback,
