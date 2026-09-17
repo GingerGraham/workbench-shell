@@ -16,6 +16,9 @@ sync:
 
 overrides_src: shell/overrides.sh
 
+info:
+  description: "Shell/editor/prompt layer — aliases, direnv, fzf, and omp/starship/omz prompt engines"
+
 deploy:
   - src: files/tmux.conf
     dest: ~/.config/tmux/tmux.conf
