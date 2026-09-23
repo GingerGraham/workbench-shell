@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-23
+
 ### Fixed
 
 - **`reset-shell`/`rs` no longer open a pager or dump the full aliases
