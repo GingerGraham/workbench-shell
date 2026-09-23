@@ -4,6 +4,19 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`reset-shell`/`rs` no longer open a pager or dump the full aliases
+  listing.** Both now call `get-functions --no-pager --no-aliases`
+  instead of a bare `get-functions`, matching the summary a fresh shell
+  already shows you (`WORKBENCH_SHOW_FUNCTIONS`'s startup banner in
+  `workbench-core`) rather than inheriting `wb functions`' interactive
+  pager and full output once `workbench-core` gained one. `aliases` is
+  unchanged — it's still the full listing, by design. Requires a
+  `workbench-core` release carrying its `docs/decisions-log.md`
+  D72/D73 fix; on an older `workbench-core`, the two flags are silently
+  ignored (no error, no regression).
+
 ## [0.6.0] - 2026-09-23
 
 ### Added

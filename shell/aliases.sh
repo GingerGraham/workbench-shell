@@ -81,10 +81,20 @@ fi
 command -v cmatrix &>/dev/null && alias matrix="cmatrix -abs"
 
 # ── get-functions shortcut ────────────────────────────────────────────────────
+# reset-shell/rs are meant to redisplay the same quick summary a fresh
+# shell already shows you (WORKBENCH_SHOW_FUNCTIONS's startup banner,
+# workbench-core lib/loader.sh) — --no-pager --no-aliases matches that
+# banner exactly, so these never drop into an interactive pager session
+# or dump the full aliases listing (workbench-core docs/decisions-log.md
+# D73; real report: reset-shell paged and showed a much narrower column
+# layout than `wb apply`/a new terminal, once workbench-core's `wb
+# functions` gained a pager). `aliases` is left as a bare `get-functions`
+# call, unchanged — its whole purpose is the full listing, aliases
+# included, same as running `wb functions` by hand.
 if command -v get-functions &>/dev/null; then
     alias aliases="get-functions"
-    alias reset-shell="clear && get-functions"
-    alias rs="clear && get-functions"
+    alias reset-shell="clear && get-functions --no-pager --no-aliases"
+    alias rs="clear && get-functions --no-pager --no-aliases"
 fi
 
 # ── wb tools shortcut ─────────────────────────────────────────────────────────
