@@ -4,6 +4,15 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Security
+
+- **oh-my-zsh's installer script is now downloaded to a file and
+  executed from there, not run straight off the network through
+  `sh -c "$(curl|wget|fetch …)"`.** A failed download (network error,
+  an HTTP error page) is now caught before anything runs, instead of
+  `sh` trying to interpret whatever came back (security review M3). All
+  three fallback paths (curl, wget, fetch) are covered.
+
 ## [0.6.1] - 2026-09-23
 
 ### Fixed

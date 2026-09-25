@@ -161,16 +161,45 @@ install-oh-my-zsh() {
         fi
     fi
 
-    if command -v curl &>/dev/null; then
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    elif command -v wget &>/dev/null; then
-        sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
-    elif command -v fetch &>/dev/null; then
-        sh -c "$(fetch -o - https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    else
-        log_error "curl or wget required to install oh-my-zsh"
+    local install_url="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+    local tmp_script
+    if ! tmp_script="$(mktemp)"; then
+        log_error "oh-my-zsh: mktemp failed — cannot create a temp file for the install script"
         return 1
     fi
+
+    # Downloaded to a file and run from there, not run straight off the
+    # network through a command-substitution shell wrapper — a failed
+    # download (network error, an HTTP error page) is caught before
+    # anything runs, instead of sh trying to interpret whatever came back
+    # (security review M3).
+    local dl_rc=0
+    if command -v curl &>/dev/null; then
+        _download_file_robust "${install_url}" "${tmp_script}" || dl_rc=$?
+    elif command -v wget &>/dev/null; then
+        wget -q -O "${tmp_script}" "${install_url}" || dl_rc=$?
+    elif command -v fetch &>/dev/null; then
+        fetch -o "${tmp_script}" "${install_url}" || dl_rc=$?
+    else
+        log_error "curl or wget required to install oh-my-zsh"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+
+    # A nonzero download exit code catches a truncated/interrupted transfer
+    # that the size check alone would miss (a partial file is still
+    # non-empty) — matching _omp-install-linux and _starship-install-linux
+    # above.
+    if [[ "${dl_rc}" -ne 0 ]] || [[ ! -s "${tmp_script}" ]]; then
+        log_error "oh-my-zsh: install script download failed or was empty"
+        rm -f "${tmp_script}"
+        return 1
+    fi
+
+    sh "${tmp_script}"
+    local rc=$?
+    rm -f "${tmp_script}"
+    return ${rc}
 }
 
 # Mirrors install-oh-my-zsh's own idempotency check — the omz CLI wrapper,
