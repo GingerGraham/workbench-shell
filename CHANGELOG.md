@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-09-25
+
 ### Security
 
 - **oh-my-zsh's installer script is now downloaded to a file and
