@@ -173,19 +173,24 @@ install-oh-my-zsh() {
     # download (network error, an HTTP error page) is caught before
     # anything runs, instead of sh trying to interpret whatever came back
     # (security review M3).
+    local dl_rc=0
     if command -v curl &>/dev/null; then
-        _download_file_robust "${install_url}" "${tmp_script}"
+        _download_file_robust "${install_url}" "${tmp_script}" || dl_rc=$?
     elif command -v wget &>/dev/null; then
-        wget -q -O "${tmp_script}" "${install_url}"
+        wget -q -O "${tmp_script}" "${install_url}" || dl_rc=$?
     elif command -v fetch &>/dev/null; then
-        fetch -o "${tmp_script}" "${install_url}"
+        fetch -o "${tmp_script}" "${install_url}" || dl_rc=$?
     else
         log_error "curl or wget required to install oh-my-zsh"
         rm -f "${tmp_script}"
         return 1
     fi
 
-    if [[ ! -s "${tmp_script}" ]]; then
+    # A nonzero download exit code catches a truncated/interrupted transfer
+    # that the size check alone would miss (a partial file is still
+    # non-empty) — matching _omp-install-linux and _starship-install-linux
+    # above.
+    if [[ "${dl_rc}" -ne 0 ]] || [[ ! -s "${tmp_script}" ]]; then
         log_error "oh-my-zsh: install script download failed or was empty"
         rm -f "${tmp_script}"
         return 1
