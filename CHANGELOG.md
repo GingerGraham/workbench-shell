@@ -4,6 +4,15 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Security
+
+- **oh-my-zsh no longer auto-updates; it shows a reminder instead.**
+  `shell/omz.sh` now sets `zstyle ':omz:update' mode reminder` (was
+  `auto`), so oh-my-zsh no longer pulls its own `master` branch
+  unattended into code sourced by every zsh, outside workbench's release
+  tags, cooldown and adoption log (security review M9). Update
+  deliberately with `omz update` or `install-oh-my-zsh`.
+
 ## [0.6.2] - 2026-09-25
 
 ### Security

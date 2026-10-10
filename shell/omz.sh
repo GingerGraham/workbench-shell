@@ -28,7 +28,12 @@ export ZSH="${HOME}/.oh-my-zsh"
 ZSH_THEME="${ZSH_THEME:-jonathan}"
 
 # ── Update behaviour ──────────────────────────────────────────────────────────
-zstyle ':omz:update' mode auto
+# Prompt, don't auto-update (security review M9): oh-my-zsh updates by pulling
+# its master branch, unattended, into code sourced by every zsh -- outside
+# workbench's release tags, cooldown and adoption log. `reminder` shows a
+# notice at the configured frequency; update deliberately with `omz update`
+# (or `install-oh-my-zsh`, which runs it).
+zstyle ':omz:update' mode reminder
 zstyle ':omz:update' frequency 7
 
 # ── History ───────────────────────────────────────────────────────────────────
