@@ -46,6 +46,10 @@ file is self-electing:
 - `shell/omz.sh` — no-ops if `oh-my-posh` or `starship` is present;
   otherwise proceeds if the shell is zsh and `~/.oh-my-zsh` exists.
 
+oh-my-zsh is set to `reminder` update mode: it shows a notice every 7
+days rather than pulling its own `master` branch unattended. Update
+deliberately with `omz update` (or `install-oh-my-zsh`, which runs it).
+
 Set `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to `omp`, `starship`, or `omz` in
 `~/.config/workbench/local/overrides/shell.sh` (see below) to force a
 specific engine regardless of what's installed or this priority order.
