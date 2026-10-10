@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-10-10
+
 ### Security
 
 - **oh-my-zsh no longer auto-updates; it shows a reminder instead.**
