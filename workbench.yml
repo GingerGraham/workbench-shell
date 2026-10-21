@@ -20,12 +20,16 @@ info:
   description: "Shell/editor/prompt layer — aliases, direnv, fzf, and omp/starship/omz prompt engines"
 
 deploy:
+  # lifecycle unset = managed (D81): refreshed while unedited, never
+  # touched once edited. yield_to: other places the tool reads config from.
   - src: files/tmux.conf
     dest: ~/.config/tmux/tmux.conf
     mode: copy
+    yield_to: [~/.tmux.conf]
   - src: files/vimrc
     dest: ~/.vimrc
     mode: copy
+    yield_to: [~/.vim/vimrc, ~/.config/vim/vimrc]
   - src: files/starship.toml
     dest: ~/.config/starship.toml
     mode: copy
