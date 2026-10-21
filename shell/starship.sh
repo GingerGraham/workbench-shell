@@ -10,8 +10,8 @@
 # Uses whatever config is found at $STARSHIP_CONFIG or the XDG default
 # (~/.config/starship.toml) — including a pre-existing distro-provided
 # config (e.g. Omarchy). This module's own files/starship.toml is deployed
-# only if one isn't already present, and never overwritten afterwards
-# (workbench.yml's deploy[] force default).
+# only if one isn't already present, and never overwritten once edited
+# (workbench-core D81's managed lifecycle).
 [[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
 
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then

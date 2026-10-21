@@ -1,5 +1,6 @@
-# direnv global configuration — deployed once by workbench-shell, never
-# overwritten afterwards. Edit freely; a later sync will not touch this file.
+# direnv global configuration — deployed by workbench-shell. Edit freely:
+# workbench updates this file only while you haven't changed it, and never
+# touches it once you have ('wb files status' shows where it stands).
 # See: https://direnv.net/man/direnv.toml.1.html
 
 [global]

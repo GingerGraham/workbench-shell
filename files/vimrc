@@ -1,6 +1,7 @@
 " vimrc
-" Deployed once by workbench-shell to ~/.vimrc, never overwritten
-" afterwards. Edit freely; a later sync will not touch this file.
+" Deployed by workbench-shell to ~/.vimrc. Edit freely: workbench updates
+" this file only while you haven't changed it, and never touches it once
+" you have ('wb files status' shows where it stands).
 " Intentionally minimal: works on any server with a standard vim install.
 " For the full editor experience, use neovim (nvim-config repo).
 
