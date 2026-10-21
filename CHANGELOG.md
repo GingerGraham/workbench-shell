@@ -4,6 +4,16 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **`tmux.conf` and `vimrc` yield to a config you already have.** With
+  `~/.tmux.conf`, or `~/.vim/vimrc`/`~/.config/vim/vimrc`, present, this
+  module no longer adds a second one beside it (tmux would load both, and
+  a new `~/.vimrc` would shadow yours). `wb files use shell <file>` opts in
+  to this module's version; `wb files restore` puts yours back. Requires
+  the workbench-core release with D81.
+- **A `LESS` you set yourself is kept** — `-R` is now only the default.
+
 ## [0.6.3] - 2026-10-10
 
 ### Security

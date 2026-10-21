@@ -34,8 +34,9 @@ export VISUAL
 
 export EDITOR="${EDITOR:-vim}"
 
-# Make less friendlier for non-text input files
-export LESS="-R"
+# Make less friendlier for non-text input files — unless the user already
+# chose their own less options.
+export LESS="${LESS:--R}"
 export PAGER="${PAGER:-less}"
 
 # ── bat theme ─────────────────────────────────────────────────────────────────
