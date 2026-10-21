@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-21
+
 ### Changed
 
 - **`tmux.conf` and `vimrc` yield to a config you already have.** With
