@@ -4,6 +4,25 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **tmux and vim defaults are a block in your own config**
+  (workbench-core D82; needs Core API 1.6, `core_api: ">=1.6 <2.0"`).
+  workbench-core adds a marked block at the top of the tmux config and
+  vimrc you already use, loading `files/tmux.conf` / `files/vimrc` from
+  the module; anything you set in your file wins. No second tmux config is
+  created beside yours. On update, an unedited 0.7.x copy becomes a file
+  holding only the block; an edited one keeps all your lines, with the
+  block on top. `starship.toml` and `direnv.toml` stay whole-file copies.
+- **direnv is hooked only if nothing has hooked it already** (your rc
+  file, another setup, or workbench-git; workbench-core D83).
+
+### Fixed
+
+- **`tmux-reload` reloads the config tmux actually reads** —
+  `~/.tmux.conf` when you have one — instead of always
+  `~/.config/tmux/tmux.conf`.
+
 ## [0.7.0] - 2026-10-21
 
 ### Changed

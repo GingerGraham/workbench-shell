@@ -1,7 +1,8 @@
-" vimrc
-" Deployed by workbench-shell to ~/.vimrc. Edit freely: workbench updates
-" this file only while you haven't changed it, and never touches it once
-" you have ('wb files status' shows where it stands).
+" vimrc — workbench-shell
+" Included from a workbench block at the top of your own vimrc
+" (workbench-core docs/decisions-log.md D82). Settings in your file win.
+" Don't edit this file — it's replaced on every update. Stop using it:
+" wb files policy shell vimrc skip
 " Intentionally minimal: works on any server with a standard vim install.
 " For the full editor experience, use neovim (nvim-config repo).
 
