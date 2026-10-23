@@ -58,8 +58,12 @@ if command -v tmux &>/dev/null; then
     alias tmux-attach='tmux attach-session -t main'
     # Reload the config tmux reads: the first that exists in tmux's own
     # search order. Your file holds workbench's block (workbench-core D82),
-    # so this reloads both.
-    tmux-reload() {
+    # so this reloads both. Defined with 'function': a shell that already
+    # has 0.7.x's tmux-reload alias would expand it in 'tmux-reload()' and
+    # fail to parse; neither bash nor zsh expands the name after 'function'.
+    # The unalias then stops that old alias shadowing the function.
+    unalias tmux-reload 2>/dev/null || true
+    function tmux-reload {
         local conf
         for conf in "${HOME}/.tmux.conf" \
                     "${XDG_CONFIG_HOME:-${HOME}/.config}/tmux/tmux.conf" \
