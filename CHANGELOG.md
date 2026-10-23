@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-23
+
 ### Changed
 
 - **tmux and vim defaults are a block in your own config**
