@@ -4,6 +4,16 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Updating from 0.7.x no longer prints a syntax error in the open
+  shell.** `wb update` reloads the shell in place, and 0.7.x's
+  `tmux-reload` alias was still defined there: bash and zsh expanded it
+  inside 0.8.0's `tmux-reload()` definition and failed to parse
+  `shell/aliases.sh` from that line on. The function is now defined with
+  `function`, which neither shell alias-expands, and the old alias is
+  removed. New shells were never affected.
+
 ## [0.8.0] - 2026-10-23
 
 ### Changed
