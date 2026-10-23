@@ -56,7 +56,22 @@ fi
 if command -v tmux &>/dev/null; then
     alias tmux-new='tmux new-session -s main'
     alias tmux-attach='tmux attach-session -t main'
-    alias tmux-reload='tmux source-file "${HOME}/.config/tmux/tmux.conf"'
+    # Reload the config tmux reads: the first that exists in tmux's own
+    # search order. Your file holds workbench's block (workbench-core D82),
+    # so this reloads both.
+    tmux-reload() {
+        local conf
+        for conf in "${HOME}/.tmux.conf" \
+                    "${XDG_CONFIG_HOME:-${HOME}/.config}/tmux/tmux.conf" \
+                    "${HOME}/.config/tmux/tmux.conf"; do
+            if [[ -f "${conf}" ]]; then
+                tmux source-file "${conf}"
+                return
+            fi
+        done
+        log_error "tmux-reload: no tmux config found (~/.tmux.conf or ~/.config/tmux/tmux.conf)"
+        return 1
+    }
 fi
 
 # ── VS Code ───────────────────────────────────────────────────────────────────

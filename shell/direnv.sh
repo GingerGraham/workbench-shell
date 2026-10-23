@@ -18,7 +18,10 @@ export DIRENV_LOG_FORMAT=""
 # ── Shell hook ─────────────────────────────────────────────────────────────
 case "${WORKBENCH_SHELL}" in
     bash|zsh)
-        eval "$(direnv hook "${WORKBENCH_SHELL}")"
+        # Skip if direnv is already hooked — by your own rc file, another
+        # setup, or workbench-git (workbench-core docs/decisions-log.md D83).
+        _wb_prompt_hook_registered _direnv_hook \
+            || eval "$(direnv hook "${WORKBENCH_SHELL}")"
         ;;
     *)
         log_warn "direnv: unsupported shell '${WORKBENCH_SHELL}' — skipping hook"

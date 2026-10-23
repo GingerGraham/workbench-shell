@@ -3,8 +3,10 @@
 Opinionated shell/editor/prompt layer for the
 [`workbench`](https://github.com/GingerGraham/workbench-core) ecosystem.
 
-An **ecosystem module** (`workbench-core` ARCHITECTURE.md §2) — meaningless
-standalone. Requires `workbench-core` installed first:
+An **ecosystem module** (`workbench-core` ARCHITECTURE.md §2). Requires
+`workbench-core` only — it works without any other workbench module, and
+alongside a shell setup of your own (see "Using workbench-shell alongside
+another shell setup" below):
 
 ```sh
 wb add shell
@@ -28,8 +30,11 @@ wb install --bundle workstation
 - `EDITOR`/`VISUAL`/`PAGER`/`BAT_THEME` defaults, with a self-electing
   `VISUAL` priority order — `code-insiders > code > nvim > vim`
   (`shell/editors.sh`).
-- `tmux.conf`, `vimrc`, `starship.toml`, and `direnv.toml` — kept current
-  until you edit them, never touched once you have (workbench-core D81).
+- tmux and vim defaults, as a workbench block at the top of your own
+  tmux config and vimrc — anything you set in your file wins
+  (workbench-core D82).
+- `starship.toml` and `direnv.toml` — kept current until you edit them,
+  never touched once you have (workbench-core D81).
 - `install-oh-my-posh`, `install-starship`, `install-oh-my-zsh`,
   `install-zsh`, `install-zsh-default-shell`, `install-zsh-plugins`,
   `install-direnv`, `install-fzf`, `install-neovim` — via `wb tools update`.
@@ -92,31 +97,96 @@ anything else a `shell/*.sh` file here reads with a default.
 `set-omp-theme-permanent`
 writes into this same file for you, rather than you editing it by hand.
 
-Your `tmux.conf`, `vimrc`, `starship.toml` and `direnv.toml` are yours
-to edit (workbench-core D81). While you haven't touched one, it picks up
-this module's improvements on every update; once you edit it, workbench
-never changes it again, and tells you (a one-line notice in a new shell,
-and `wb files status`) when this module's default has moved on, so you can
-`wb files diff`/`wb files resolve` at your own pace. If you already have a
-tmux or vim config — `~/.tmux.conf`, `~/.vim/vimrc` or
-`~/.config/vim/vimrc` — this module leaves it alone rather than adding a
-second one beside it (tmux would load both).
+### tmux and vim: a block in your own file
 
-Want this module's version instead of yours, or back after a mess?
-`wb files use shell <name>` (or `all`) puts it in place and moves yours —
-and any competing tmux/vim config — to the backups folder; `wb files
-restore shell <name>` puts yours back. Note the leading dot for
-`.vimrc`: the name is the deployed file's basename, or pass its full
-path. `shell/overrides.sh` above is yours permanently and isn't covered
-by `all`.
+`wb add shell` adds a marked block at the top of your tmux config and your
+vimrc. The block loads this module's `files/tmux.conf` / `files/vimrc`
+straight from the module, so updates take effect with nothing copied:
+
+```
+# >>> workbench shell/tmux.conf under >>>
+# Managed by workbench (wb files status). Put your settings outside this block.
+source-file -q ".../modules/shell/current/files/tmux.conf"
+# <<< workbench shell/tmux.conf under <<<
+set -g mouse off        # yours: wins, because tmux keeps the last value
+```
+
+- **Which file:** the one the tool already reads — tmux:
+  `~/.tmux.conf`, then `~/.config/tmux/tmux.conf`; vim: `~/.vimrc`, then
+  `~/.vim/vimrc`, then `~/.config/vim/vimrc`. With none, workbench creates
+  `~/.config/tmux/tmux.conf` (tmux 3.1+, else `~/.tmux.conf`) and
+  `~/.vimrc`. Never a second file beside yours.
+- **Your settings win.** Everything outside the block is yours and is
+  never changed. Put your settings below it.
+- **TPM** finds the plugins in the module's file and any `@plugin` lines
+  you add to yours.
+- **Don't want it:** `wb files policy shell tmux.conf skip` (or `vimrc`)
+  removes the block; `wb add shell --skip-layer tmux.conf` never adds it.
+- **Want only workbench's:** `wb files use shell tmux.conf` backs your file
+  up and leaves just the block; `wb files restore shell tmux.conf` puts
+  yours back.
+
+`wb files status shell` lists both under "Layers".
+
+### Upgrading from 0.7.x
+
+0.7.x copied whole `tmux.conf`/`vimrc` files. On the first update to this
+release, `workbench-core` converts each one:
+
+- **A copy you never edited** becomes a file holding only the block.
+- **A copy you edited** keeps everything you have, with the block added at
+  the top. Those lines include 0.7.x's defaults, and because your lines
+  win, they keep overriding future changes to this module's defaults
+  (`wb files status` and a one-line warning say so). To follow the module
+  again, delete the old default lines and keep only your own changes. To
+  see which lines are yours:
+  `diff ~/.vimrc ~/.local/share/workbench/modules/shell/current/files/vimrc`
+  (same for your tmux config and `files/tmux.conf`).
+
+### starship and direnv: whole files
+
+`starship.toml` and `direnv.toml` are yours to edit (workbench-core D81):
+neither tool can include another config file, so these stay whole-file
+copies. While you haven't touched one, it picks up this module's
+improvements on every update; once you edit it, workbench never changes it
+again, and tells you (a one-line notice in a new shell, and `wb files
+status`) when this module's default has moved on, so you can `wb files
+diff`/`wb files resolve` at your own pace. `wb files use shell
+starship.toml` puts this module's version in place and moves yours to the
+backups folder; `wb files restore` puts yours back. `shell/overrides.sh`
+above is yours permanently and isn't covered by `wb files use shell all`.
+
+## Using workbench-shell alongside another shell setup
+
+Your rc files, prompt and dotfiles manager can stay as they are. This
+module's changes:
+
+- **Aliases**, sourced in every shell — among them `cat` → `bat`, `top` →
+  `btop`/`htop`, `python` → `python3`, `pip` → `pip3`, `code` →
+  `code-insiders`, where those tools are installed. See
+  `shell/aliases.sh`; an alias of your own defined later wins.
+- **Prompt election.** If oh-my-posh, starship or oh-my-zsh is installed,
+  this module starts it (see below). It doesn't detect a prompt you set up
+  some other way. If you manage your prompt yourself, set
+  `WORKBENCH_OVERRIDE_PROMPT_ENGINE` in
+  `~/.config/workbench/local/overrides/shell.sh` to the engine you use — or
+  to a value that names none, such as `none`, and no engine is started.
+  A prompt manager that hooks your shell before workbench loads is left
+  alone either way. A plain custom `PS1` with nothing behind it can still
+  be replaced by workbench-core's own fallback prompt (workbench-core D64).
+- **Editor election.** `VISUAL`/`EDITOR` are set only if you haven't set
+  them; set `VISUAL` in `overrides.sh` and it wins.
+- **direnv:** hooked only if nothing has hooked it already — your rc file,
+  another setup, or workbench-git.
+- **tmux and vim:** the blocks above; your settings outside them win.
 
 ## Files
 
-| File | Deployed to | Notes |
+| File | Where it goes | Notes |
 |------|-------------|-------|
 | `shell/overrides.sh` | `~/.config/workbench/local/overrides/shell.sh` | Deployed once, never overwritten — edit freely. Ships fully commented; see [Overriding this module's defaults](#overriding-this-modules-defaults) |
-| `files/tmux.conf` | `~/.config/tmux/tmux.conf` | Kept current until you edit it; never touched once you have. Left alone if you already have `~/.tmux.conf` |
-| `files/vimrc` | `~/.vimrc` | Kept current until you edit it; never touched once you have. Left alone if you already have `~/.vim/vimrc` or `~/.config/vim/vimrc` |
+| `files/tmux.conf` | Not copied — included from a block at the top of your tmux config | Replaced on every update; don't edit it. Your own settings go in your file, below the block |
+| `files/vimrc` | Not copied — included from a block at the top of your vimrc | Replaced on every update; don't edit it. Your own settings go in your file, below the block |
 | `files/starship.toml` | `~/.config/starship.toml` | Kept current until you edit it; never touched once you have |
 | `files/direnv.toml` | `~/.config/direnv/direnv.toml` | Kept current until you edit it; never touched once you have. Ships with `[whitelist]` commented out: direnv does not expand `~` in `direnv.toml`, so a default like `~/Projects` would silently never match anything. Uncomment it yourself with your `workbench-git` `projects_base`, fully expanded (e.g. `/home/you/Projects`), if you want per-project `direnv allow` prompts skipped |
 

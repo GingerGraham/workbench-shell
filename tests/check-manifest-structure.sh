@@ -41,7 +41,7 @@ else
     fail "no manifest found (checked ${_MANIFEST_CANDIDATES})"
 fi
 
-for key in version core_api register deploy; do
+for key in version core_api register deploy layers; do
     if [[ -n "${MANIFEST}" ]] && grep -q "^${key}:" "${MANIFEST}"; then
         ok "manifest declares '${key}:'"
     else
@@ -58,6 +58,19 @@ if [[ -n "${MANIFEST}" ]]; then
             fail "manifest references missing file: ${src}"
         fi
     done < <(grep -E '^[[:space:]]*(-[[:space:]]*)?src:' "${MANIFEST}" | sed -E 's/^[[:space:]]*-?[[:space:]]*src:[[:space:]]*//')
+fi
+
+if [[ -n "${MANIFEST}" ]] && grep -q '^core_api: ">=1.6 <2.0"$' "${MANIFEST}"; then
+    ok "core_api requires 1.6 (layers, _wb_prompt_hook_registered)"
+else
+    fail "core_api must be \">=1.6 <2.0\""
+fi
+
+# tmux.conf and vimrc are layers now (D82), never whole-file deploys.
+if [[ -n "${MANIFEST}" ]] && grep -Eq '^[[:space:]]*dest:.*(tmux\.conf|vimrc)' "${MANIFEST}"; then
+    fail "manifest still deploys a tmux.conf or vimrc — they're layers (workbench-core D82)"
+else
+    ok "tmux.conf and vimrc aren't deploy entries"
 fi
 
 declare -a _bash32_patterns=(
