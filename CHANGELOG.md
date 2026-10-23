@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-10-23
+
 ### Fixed
 
 - **Updating from 0.7.x no longer prints a syntax error in the open
