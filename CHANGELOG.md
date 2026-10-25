@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-10-25
+
 ### Fixed
 
 - **A shell without direnv, fzf, lesspipe on `PATH`, or the zsh plugins
