@@ -23,13 +23,21 @@ setopt hist_verify
 
 # ── Completion system ─────────────────────────────────────────────────────────
 autoload -Uz compinit
-# Regenerate compinit dump at most once per day to keep startup fast.
-# The glob (#qN.mh+24) matches the dump file if it is older than 24 hours.
-if [[ -n "${ZDOTDIR:-${HOME}}/.zcompdump"(#qN.mh+24) ]]; then
-    compinit
+# Regenerate the compinit dump at most once per day to keep startup fast:
+# the full check runs when the dump is missing or older than 24 hours
+# (glob qualifier N.mh+24), otherwise -C loads the dump as is. The glob is
+# expanded in an array assignment because [[ ]] does no filename
+# generation. -i drops insecure fpath directories instead of asking about
+# them: with no terminal to ask on, compinit would abort and print
+# "compinit: initialization aborted".
+_wb_zcompdump="${ZDOTDIR:-${HOME}}/.zcompdump"
+_wb_zcompdump_stale=( "${_wb_zcompdump}"(N.mh+24) )
+if [[ ! -f "${_wb_zcompdump}" || ${#_wb_zcompdump_stale[@]} -gt 0 ]]; then
+    compinit -i
 else
     compinit -C
 fi
+unset _wb_zcompdump _wb_zcompdump_stale
 
 zstyle ':completion:*' auto-description 'specify: %d'
 zstyle ':completion:*' completer _expand _complete _correct _approximate

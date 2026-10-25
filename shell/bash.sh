@@ -26,10 +26,10 @@ shopt -s globstar 2>/dev/null || true
 
 # ── lesspipe ──────────────────────────────────────────────────────────────────
 # Allows less to display non-text files (compressed archives, PDFs, etc.)
-# Sets the two variables 'eval "$(lesspipe)"' sets, directly: evaluating
-# the script's output ran whatever it printed as commands (on GitHub's
-# ubuntu runner, a message starting "Please"), and needed lesspipe on PATH
-# (workbench-core D94). No subprocess on every shell start, either.
+# Sets the two variables 'eval "$(lesspipe)"' sets, directly: with lesspipe
+# not on PATH, that evaluated Ubuntu's command-not-found message, whose
+# line starting "Please" bash then ran as a command (workbench-core D94).
+# No subprocess on every shell start, either.
 if [ -x /usr/bin/lesspipe ]; then
     export LESSOPEN="| /usr/bin/lesspipe %s"
     export LESSCLOSE="/usr/bin/lesspipe %s %s"

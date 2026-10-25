@@ -6,13 +6,24 @@ All notable changes to `workbench-shell` are documented here.
 
 ### Fixed
 
-- **A shell without direnv, lesspipe on `PATH`, or the zsh plugins now
-  starts silently.** The direnv hook runs only when direnv is installed
-  (its functions stay defined either way); `lesspipe` runs by the path it
-  was checked at, by setting `LESSOPEN`/`LESSCLOSE` directly instead of
-  evaluating its output; a missing zsh-autosuggestions or zsh-syntax-highlighting
-  is reported at debug level, pointing at `wb tools install zsh-plugins`,
-  instead of a warning on every start. Required by workbench-core's module
+- **A shell without direnv, fzf, lesspipe on `PATH`, or the zsh plugins
+  now starts silently.** The direnv hook runs only when direnv is
+  installed (its functions stay defined either way); fzf's shell
+  integration is sourced only when fzf is installed (on Ubuntu, bash
+  otherwise ran a line of the command-not-found message as a command);
+  `lesspipe` runs by the path it was checked at, by setting
+  `LESSOPEN`/`LESSCLOSE` directly instead of evaluating its output; a
+  missing zsh-autosuggestions or zsh-syntax-highlighting is reported at
+  debug level, pointing at `wb tools install zsh-plugins`, instead of a
+  warning on every start.
+- **zsh no longer runs compinit's full security check on every start, or
+  aborts it without a terminal.** The once-a-day dump refresh never
+  matched (`[[ ]]` does no globbing), so every start ran the full check;
+  where an `fpath` directory is group- or world-writable, compinit asked
+  whether to continue and, with no terminal, printed "compinit:
+  initialization aborted" and left completion off. The refresh now runs
+  only when the dump is missing or a day old, and drops insecure
+  directories (`compinit -i`) instead of asking. Required by workbench-core's module
   CI clean-shell check (its `docs/decisions-log.md` D94).
 
 ## [0.8.1] - 2026-10-23

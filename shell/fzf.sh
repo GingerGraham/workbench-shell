@@ -7,8 +7,13 @@
 
 # ── Shell integration ─────────────────────────────────────────────────────────
 # Loads Ctrl-R (history), Ctrl-T (file picker), and Alt-C (directory jump)
-# key bindings plus fuzzy tab completion.
-if [[ "${WORKBENCH_SHELL}" == "zsh" ]]; then
+# key bindings plus fuzzy tab completion. Without fzf, nothing is sourced:
+# 'source <(fzf ...)' would source whatever ran instead, and on Ubuntu
+# bash's command-not-found handler prints a line starting "Please" that
+# bash then ran as a command (workbench-core D94).
+if ! command -v fzf &>/dev/null; then
+    log_debug "fzf: not installed — shell integration skipped (wb tools install fzf)"
+elif [[ "${WORKBENCH_SHELL}" == "zsh" ]]; then
     # shellcheck disable=SC1090
     source <(fzf --zsh 2>/dev/null) || true
 elif [[ "${WORKBENCH_SHELL}" == "bash" ]]; then
