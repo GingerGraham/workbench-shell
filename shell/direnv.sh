@@ -16,20 +16,25 @@
 export DIRENV_LOG_FORMAT=""
 
 # ── Shell hook ─────────────────────────────────────────────────────────────
-case "${WORKBENCH_SHELL}" in
-    bash|zsh)
-        # Skip if direnv is already hooked — by your own rc file, another
-        # setup, or workbench-git (workbench-core docs/decisions-log.md D83).
-        _wb_prompt_hook_registered _direnv_hook \
-            || eval "$(direnv hook "${WORKBENCH_SHELL}")"
-        ;;
-    *)
-        log_warn "direnv: unsupported shell '${WORKBENCH_SHELL}' — skipping hook"
-        return 0
-        ;;
-esac
-
-log_debug "direnv: hook installed (shell=${WORKBENCH_SHELL})"
+# Only when direnv is installed: without it, 'direnv hook' printed
+# "command not found" on every shell start (workbench-core
+# docs/decisions-log.md D94). The functions below stay defined either way.
+if command -v direnv &>/dev/null; then
+    case "${WORKBENCH_SHELL}" in
+        bash|zsh)
+            # Skip if direnv is already hooked — by your own rc file, another
+            # setup, or workbench-git (workbench-core docs/decisions-log.md D83).
+            _wb_prompt_hook_registered _direnv_hook \
+                || eval "$(direnv hook "${WORKBENCH_SHELL}")"
+            log_debug "direnv: hook installed (shell=${WORKBENCH_SHELL})"
+            ;;
+        *)
+            log_warn "direnv: unsupported shell '${WORKBENCH_SHELL}' — skipping hook"
+            ;;
+    esac
+else
+    log_debug "direnv: not installed — no hook ('wb tools install direnv')"
+fi
 
 # ── functions ────────────────────────────────────────────────────────────────
 

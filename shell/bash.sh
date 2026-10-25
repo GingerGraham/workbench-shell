@@ -26,7 +26,9 @@ shopt -s globstar 2>/dev/null || true
 
 # ── lesspipe ──────────────────────────────────────────────────────────────────
 # Allows less to display non-text files (compressed archives, PDFs, etc.)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+# Run by the path it was checked at, not looked up on PATH: a PATH without
+# /usr/bin printed "lesspipe: command not found" (workbench-core D94).
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh /usr/bin/lesspipe)"
 
 # ── System bash-completion ────────────────────────────────────────────────────
 # Only source if not already loaded and not in posix mode (which disables it).

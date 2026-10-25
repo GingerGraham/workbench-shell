@@ -32,7 +32,9 @@ if [[ "${_zsh_autosuggest_loaded}" == "true" ]]; then
     ZSH_AUTOSUGGEST_STRATEGY=(history completion)
     log_debug "zsh-plugins: autosuggestions loaded"
 else
-    log_warn "zsh-plugins: zsh-autosuggestions not found — install via 'sudo dnf install zsh-autosuggestions' or clone to ~/.zsh/zsh-autosuggestions/"
+    # Debug, not a warning: a missing optional plugin is not worth a line on
+    # every shell start (workbench-core docs/decisions-log.md D94).
+    log_debug "zsh-plugins: zsh-autosuggestions not found — 'wb tools install zsh-plugins', or clone to ~/.zsh/zsh-autosuggestions/"
 fi
 unset _zsh_autosuggest_loaded
 
@@ -54,6 +56,6 @@ fi
 if [[ "${_zsh_syntax_loaded}" == "true" ]]; then
     log_debug "zsh-plugins: syntax highlighting loaded"
 else
-    log_warn "zsh-plugins: zsh-syntax-highlighting not found — install via 'sudo dnf install zsh-syntax-highlighting' or clone to ~/.zsh/zsh-syntax-highlighting/"
+    log_debug "zsh-plugins: zsh-syntax-highlighting not found — 'wb tools install zsh-plugins', or clone to ~/.zsh/zsh-syntax-highlighting/"
 fi
 unset _zsh_syntax_loaded

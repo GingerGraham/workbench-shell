@@ -4,6 +4,16 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A shell without direnv, lesspipe on `PATH`, or the zsh plugins now
+  starts silently.** The direnv hook runs only when direnv is installed
+  (its functions stay defined either way); `lesspipe` runs by the path it
+  was checked at; a missing zsh-autosuggestions or zsh-syntax-highlighting
+  is reported at debug level, pointing at `wb tools install zsh-plugins`,
+  instead of a warning on every start. Required by workbench-core's module
+  CI clean-shell check (its `docs/decisions-log.md` D94).
+
 ## [0.8.1] - 2026-10-23
 
 ### Fixed
