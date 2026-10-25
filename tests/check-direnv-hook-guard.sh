@@ -79,6 +79,36 @@ result="$(run_direnv_sh "_direnv_hook;my_prompt")"
     && ok "...and PROMPT_COMMAND is unchanged" \
     || fail "PROMPT_COMMAND is '${result}'"
 
+# 5–6. direnv not installed: no hook, nothing on stderr, and the
+#      functions are still defined (workbench-core D94 clean shell start).
+no_direnv_err="${WORK}/no-direnv.err"
+no_direnv_out="$(
+    (
+        PATH="/usr/bin:/bin"
+        command -v direnv &>/dev/null && { echo "SKIP-REAL-DIRENV"; exit 0; }
+        WORKBENCH_SHELL="bash"
+        PROMPT_COMMAND=""
+        log_warn()  { :; }
+        log_debug() { :; }
+        _wb_prompt_hook_registered() { return 1; }
+        # shellcheck source=shell/direnv.sh
+        source "${REPO_ROOT}/shell/direnv.sh"
+        declare -F edit-direnv-config >/dev/null && echo "FUNCS-DEFINED"
+        printf 'PC=%s\n' "${PROMPT_COMMAND}"
+    ) 2>"${no_direnv_err}"
+)"
+if [[ "${no_direnv_out}" == *SKIP-REAL-DIRENV* ]]; then
+    ok "direnv is installed in /usr/bin or /bin on this host — skipping the not-installed case"
+    ok "(skipped)"
+else
+    [[ ! -s "${no_direnv_err}" && "${no_direnv_out}" != *_direnv_hook* ]] \
+        && ok "direnv not installed: no hook and nothing on stderr" \
+        || fail "direnv not installed: stderr '$(cat "${no_direnv_err}")', output '${no_direnv_out}'"
+    [[ "${no_direnv_out}" == *FUNCS-DEFINED* ]] \
+        && ok "...and edit-direnv-config is still defined" \
+        || fail "edit-direnv-config is not defined when direnv is missing"
+fi
+
 echo
 echo "==============================="
 echo "Total OK/FAIL checks: ${check_no}, failed: ${FAILED}"

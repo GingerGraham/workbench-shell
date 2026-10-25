@@ -26,7 +26,14 @@ shopt -s globstar 2>/dev/null || true
 
 # ── lesspipe ──────────────────────────────────────────────────────────────────
 # Allows less to display non-text files (compressed archives, PDFs, etc.)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+# Sets the two variables 'eval "$(lesspipe)"' sets, directly: with lesspipe
+# not on PATH, that evaluated Ubuntu's command-not-found message, whose
+# line starting "Please" bash then ran as a command (workbench-core D94).
+# No subprocess on every shell start, either.
+if [ -x /usr/bin/lesspipe ]; then
+    export LESSOPEN="| /usr/bin/lesspipe %s"
+    export LESSCLOSE="/usr/bin/lesspipe %s %s"
+fi
 
 # ── System bash-completion ────────────────────────────────────────────────────
 # Only source if not already loaded and not in posix mode (which disables it).
