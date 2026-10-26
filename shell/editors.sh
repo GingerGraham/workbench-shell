@@ -46,6 +46,8 @@ fi
 
 # ── functions ────────────────────────────────────────────────────────────
 
+# Its needs text is declared in shell/aliases.sh: this file is tier env,
+# which loads before core's own files define _wb_availability_needs.
 _open-workspace-available() {
     command -v code &>/dev/null || command -v code-insiders &>/dev/null
 }

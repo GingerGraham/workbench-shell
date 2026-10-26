@@ -12,6 +12,23 @@
 # config (e.g. Omarchy). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten once edited
 # (workbench-core D81's managed lifecycle).
+
+# Availability (workbench-core docs/module-authoring.md). Declared before
+# the early returns, since listings read this file statically.
+_wb_declare_availability starship edit-starship-config
+
+# ── functions ────────────────────────────────────────────────────────────────
+
+# Open the active starship config in $EDITOR. Defined whenever starship is
+# installed, ahead of the election below: it edits the config whichever
+# prompt engine won.
+if command -v starship >/dev/null 2>&1; then
+    edit-starship-config() {
+        local config_file="${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/starship.toml}"
+        "${EDITOR:-vi}" "${config_file}"
+    }
+fi
+
 [[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
 
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
@@ -38,13 +55,3 @@ esac
 export WORKBENCH_PROMPT_ENGINE="starship"
 export WORKBENCH_PROMPT_SET=true
 log_debug "starship: initialised (config: ${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/starship.toml})"
-
-# ── functions ────────────────────────────────────────────────────────────────
-
-# Open the active starship config in $EDITOR.
-if command -v starship >/dev/null 2>&1; then
-    edit-starship-config() {
-        local config_file="${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/starship.toml}"
-        "${EDITOR:-vi}" "${config_file}"
-    }
-fi

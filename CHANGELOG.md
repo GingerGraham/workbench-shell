@@ -28,12 +28,59 @@ All notable changes to `workbench-shell` are documented here.
   in zsh it printed `(none)`. It's removed; workbench-core 2.21's getter,
   built from `register.getters[]`, is used instead. Its headers now read
   "Shell/prompt/editor helpers (…) — functions:" / "— aliases:".
+- **`routeprint`/`printrt` show the routing table.** They ran `ss -rn`,
+  which lists sockets. Now `ip route` on Linux, `netstat -rn` on macOS or
+  without `ip`.
+- **`get-python-versions` works in zsh, and lists only real interpreters.**
+  The `/usr/bin/python3*` glob was a "no matches found" error in zsh; it now
+  searches `/usr/bin` and `/usr/local/bin`.
+- **`get-public-ip` no longer prints an HTTP error page as an address**
+  (`curl -fsS`).
+- **fzf's key bindings and completion load on macOS's bash 3.2.** They were
+  loaded with `source <(…)`, which bash 3.2 ignores; they're now `eval`'d.
+- **zsh finds the plugins where `wb tools install zsh-plugins` puts them**
+  (`~/.local/share/zsh/plugins`, or under `$XDG_DATA_HOME`), and on Arch
+  (`/usr/share/zsh/plugins`) and Homebrew (`$HOMEBREW_PREFIX/share`,
+  `/usr/local/share`). The git-clone fallback now also honours
+  `XDG_DATA_HOME`.
+- **`wb tools install zsh-plugins` runs.** It refused unless the current
+  shell was zsh, which it never is under `wb tools`. `wb tools upgrade` and
+  `wb tools list --status` now see it too (`installed-zsh-plugins`).
+- **`wb tools install direnv` no longer sources `direnv.sh` into its own
+  process**, where it could never reach your shell; it says to start a new
+  shell.
+- **oh-my-posh finds Homebrew's theme directory**
+  (`$HOMEBREW_PREFIX/opt/oh-my-posh/themes`, `/usr/local/opt/…`), and no
+  longer warns on every shell start when there's none.
+- **`edit-starship-config` exists whenever starship is installed**, not only
+  when starship won the prompt election.
+- **`install-neovim` no longer stops on an unset `ZSH_VERSION`** while
+  pruning old installs.
+- Messages say `wb tools install zsh` / `wb tools install
+  zsh-default-shell`, not the internal function names.
+
+### Security
+
+- **neovim's tarball, and fzf's when it's installed from GitHub, are
+  checked against the SHA-256 GitHub publishes for them before they're
+  unpacked.** No published SHA-256, or one that doesn't match, and nothing
+  is installed. fzf's releases-API request now fails on an HTTP error
+  (`curl -fsSL`). The README has a table of what each installer verifies,
+  including the vendor install scripts that run unverified (oh-my-posh,
+  starship, oh-my-zsh, direnv's) and what `files/tmux.conf` does on first
+  start (clones TPM, installs a boot-time autostart via
+  `@continuum-boot 'on'`).
 
 ### Changed
 
 - Requires workbench-core Core API 1.8 (`core_api: ">=1.8 <2.0"`): the
   core-defined getter and `_wb_gh_release_asset_url`, which replaces this
   module's private copy of the same helper.
+- **Names that need a tool you don't have say so.** Every alias and
+  function here that needs an external tool declares it (workbench-core's
+  availability declarations), so `wb functions` and `get-shell-functions`
+  list it under what it needs instead of as available. `python`, `pip`,
+  `code`, `explorer` and `matrix` are now listed at all.
 
 ## [0.8.2] - 2026-10-25
 

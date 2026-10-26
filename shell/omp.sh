@@ -10,6 +10,14 @@
 # responsible for its own guard and for setting WORKBENCH_PROMPT_SET=true
 # (contracts/core-api.md's prompt-ownership convention) so the loader's own
 # fallback PS1/PROMPT is skipped.
+
+# Availability (workbench-core docs/module-authoring.md): the functions
+# below exist only once oh-my-posh has won the election. Declared before
+# the early returns, since listings read this file statically.
+_shell_omp_active() { command -v oh-my-posh &>/dev/null && [[ "${WORKBENCH_PROMPT_ENGINE:-}" == "omp" ]]; }
+_wb_alias_availability --needs "oh-my-posh as the prompt engine" --install oh-my-posh \
+    _shell_omp_active omp-themes set-omp-theme set-omp-theme-permanent
+
 [[ "${WORKBENCH_PLAIN_SHELL:-false}" == "true" ]] && return 0
 
 if [[ -n "${WORKBENCH_OVERRIDE_PROMPT_ENGINE:-}" ]]; then
@@ -24,17 +32,23 @@ fi
 
 # ── Theme resolution ──────────────────────────────────────────────────────────
 # XDG-standard install location used by `oh-my-posh init` and the official
-# install script. Fallback for manual ~/bin installs that store themes locally.
+# install script; then Homebrew's (Apple silicon, then Intel); then manual
+# ~/bin installs that store themes locally.
 OMP_THEME="${OMP_THEME:-atomic}"
 
-if [[ -d "${HOME}/.cache/oh-my-posh/themes" ]]; then
-    OMP_THEME_DIR="${HOME}/.cache/oh-my-posh/themes"
-elif [[ -d "${HOME}/themes" ]]; then
-    OMP_THEME_DIR="${HOME}/themes"
-else
-    OMP_THEME_DIR=""
-    log_warn "oh-my-posh: theme directory not found; falling back to default prompt"
-fi
+OMP_THEME_DIR=""
+for _omp_dir in "${HOME}/.cache/oh-my-posh/themes" \
+                "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/oh-my-posh/themes" \
+                "/usr/local/opt/oh-my-posh/themes" \
+                "${HOME}/themes"; do
+    if [[ -d "${_omp_dir}" ]]; then
+        OMP_THEME_DIR="${_omp_dir}"
+        break
+    fi
+done
+unset _omp_dir
+# Debug, not a warning: it would print on every shell start.
+[[ -n "${OMP_THEME_DIR}" ]] || log_debug "oh-my-posh: theme directory not found; using oh-my-posh's built-in default"
 
 export OMP_THEME OMP_THEME_DIR
 

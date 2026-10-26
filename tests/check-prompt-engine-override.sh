@@ -40,6 +40,15 @@ log_debug() { :; }
 # shellcheck disable=SC2317 # called indirectly by the sourced election guards
 log_error() { echo "ERROR: $*"; }
 
+# Core API 1.8's availability declarations (lib/core/functions.sh), as
+# no-ops: this suite runs without core. tests/check-availability.sh checks
+# the declarations themselves.
+# shellcheck disable=SC2317 # called by the sourced shell files
+_wb_alias_availability()   { :; }
+_wb_declare_availability() { :; }
+# shellcheck disable=SC2317 # never called by these files; stubbed for completeness
+_wb_availability_needs()   { :; }
+
 # run_election <bindir> [override] [omz-present] [plain-shell]
 # Sources all three election guard files, in register order, in a fresh
 # subshell — a controlled PATH decides which of oh-my-posh/starship are
