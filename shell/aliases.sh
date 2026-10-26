@@ -173,17 +173,3 @@ get-public-ip() {
         echo "IPv6: $(curl -s https://ipv6.icanhazip.com)"
     fi
 }
-
-get-shell-functions() {
-    local _dir; _dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local -a _files=(
-        "${_dir}/aliases.sh" "${_dir}/bash.sh" "${_dir}/zsh.sh"
-        "${_dir}/omp.sh" "${_dir}/starship.sh" "${_dir}/omz.sh"
-        "${_dir}/zsh-plugins.sh" "${_dir}/direnv.sh" "${_dir}/fzf.sh"
-        "${_dir}/editors.sh"
-    )
-    # installers.sh is deliberately excluded — its install-* functions are
-    # surfaced via `wb tools list`, not this getter.
-    _get_functions_in "Shell functions" "" "${_files[@]}"
-    _get_aliases_in "Shell aliases" "" "${_files[@]}"
-}

@@ -10,21 +10,8 @@
 # WORKBENCH_OS/WORKBENCH_DISTRO/WORKBENCH_SHELL are workbench-core Core API
 # facts (contracts/core-api.md), replacing the precursor's DOTFILES_OS/
 # DOTFILES_DISTRO/DOTFILES_SHELL. _download_file_robust/_str_lower come from
-# workbench-core's Core API (lib/core/installers-common.sh, lib/core/functions.sh).
-
-# _gh_release_asset_url <api_response_json> <extended_regex_pattern>
-# Extracts the first browser_download_url whose filename matches <pattern>.
-# Small enough that it's duplicated per-module rather than promoted to Core
-# API (same as workbench-git's copy) — see workbench-core ARCHITECTURE.md
-# §12 D34 for the bar that's actually applied for promotion.
-_gh_release_asset_url() {
-    local api_response="$1" pattern="$2"
-    printf '%s' "${api_response}" \
-        | grep -Eo '"browser_download_url": *"[^"]+"' \
-        | sed -E 's/.*"(https[^"]+)"/\1/' \
-        | grep -E "${pattern}" \
-        | head -1
-}
+# workbench-core's Core API (lib/core/installers-common.sh, lib/core/functions.sh),
+# as does _wb_gh_release_asset_url (Core API 1.8, workbench-core D90).
 
 # ── Oh-My-Posh install ────────────────────────────────────────────────────────
 
@@ -150,15 +137,19 @@ installed-starship() {
 
 # ── oh-my-zsh install ─────────────────────────────────────────────────────────
 
+# Same directory shell/omz.sh exports as ZSH and sources oh-my-zsh.sh from.
+_omz_dir() { printf '%s' "${HOME}/.oh-my-zsh"; }
+
 install-oh-my-zsh() {
-    if command -v omz &>/dev/null; then
-        if omz update; then
+    local zsh_dir; zsh_dir="$(_omz_dir)"
+    if [[ -f "${zsh_dir}/oh-my-zsh.sh" ]]; then
+        command -v zsh &>/dev/null || { log_error "oh-my-zsh: zsh is required to update it"; return 1; }
+        if ZSH="${zsh_dir}" zsh -f "${zsh_dir}/tools/upgrade.sh"; then
             log_info "oh-my-zsh updated successfully"
             return 0
-        else
-            log_error "oh-my-zsh update failed. Check your installation or try updating manually."
-            return 1
         fi
+        log_error "oh-my-zsh update failed. Check ${zsh_dir} or update it by hand."
+        return 1
     fi
 
     local install_url="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
@@ -196,17 +187,22 @@ install-oh-my-zsh() {
         return 1
     fi
 
-    sh "${tmp_script}"
+    # Unattended, and never touching ~/.zshrc: workbench's loader stub lives
+    # there, and shell/omz.sh loads oh-my-zsh itself. No login-shell change
+    # (wb tools install zsh-default-shell does that) and no `exec zsh` at the
+    # end, which ended a `wb tools install all` run.
+    ZSH="${zsh_dir}" KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
+        sh "${tmp_script}" --unattended --keep-zshrc
     local rc=$?
     rm -f "${tmp_script}"
     return ${rc}
 }
 
-# Mirrors install-oh-my-zsh's own idempotency check — the omz CLI wrapper,
-# not the ~/.oh-my-zsh directory, since that's what the installer itself
-# already uses to decide "already installed" vs "fresh install".
+# The install directory, not the omz command: omz is a zsh function, and wb
+# runs this predicate in bash, where it never exists. Same check
+# install-oh-my-zsh uses to choose between updating and installing.
 installed-oh-my-zsh() {
-    command -v omz &>/dev/null
+    [[ -f "$(_omz_dir)/oh-my-zsh.sh" ]]
 }
 
 # ── zsh install ───────────────────────────────────────────────────────────────
@@ -566,7 +562,7 @@ _fzf-install-binary() {
     esac
 
     asset="fzf-${ver}-linux_${arch}.tar.gz"
-    url="$(_gh_release_asset_url "${api_response}" "fzf-${ver}-linux_${arch}\.tar\.gz")"
+    url="$(_wb_gh_release_asset_url "${api_response}" "fzf-${ver}-linux_${arch}\.tar\.gz")"
     [[ -z "${url}" ]] && { log_error "fzf: no matching asset for ${asset}"; return 1; }
 
     tmp_dir="$(mktemp -d)"
@@ -778,7 +774,7 @@ install-neovim() {
     local asset; asset="$(_neovim_asset_name)" || return 1
     local asset_pattern; asset_pattern="$(printf '%s' "${asset}" | sed 's/\./\\./g')"
     local download_url
-    download_url="$(_gh_release_asset_url "${api_response}" "${asset_pattern}\$")"
+    download_url="$(_wb_gh_release_asset_url "${api_response}" "${asset_pattern}\$")"
     if [[ -z "${download_url}" ]]; then
         log_error "neovim: no release asset matching ${asset} in ${tag}"
         return 1

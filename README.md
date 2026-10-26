@@ -37,7 +37,9 @@ wb install --bundle workstation
   never touched once you have (workbench-core D81).
 - `install-oh-my-posh`, `install-starship`, `install-oh-my-zsh`,
   `install-zsh`, `install-zsh-default-shell`, `install-zsh-plugins`,
-  `install-direnv`, `install-fzf`, `install-neovim` — via `wb tools update`.
+  `install-direnv`, `install-fzf`, `install-neovim` — via
+  `wb tools install <name>` (e.g. `wb tools install neovim`), and
+  `wb tools upgrade <name>` to update one that's installed.
 
 ## Prompt engine election
 
@@ -53,7 +55,14 @@ file is self-electing:
 
 oh-my-zsh is set to `reminder` update mode: it shows a notice every 7
 days rather than pulling its own `master` branch unattended. Update
-deliberately with `omz update` (or `install-oh-my-zsh`, which runs it).
+deliberately with `omz update` (or `wb tools upgrade oh-my-zsh`, which
+runs oh-my-zsh's own upgrade script).
+
+`wb tools install oh-my-zsh` runs oh-my-zsh's installer unattended and
+leaves your `~/.zshrc` alone (workbench's loader stub lives there, and
+`shell/omz.sh` loads oh-my-zsh itself). It doesn't change your login
+shell — `wb tools install zsh-default-shell` does that — and doesn't
+start a new zsh when it finishes.
 
 Set `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to `omp`, `starship`, or `omz` in
 `~/.config/workbench/local/overrides/shell.sh` (see below) to force a

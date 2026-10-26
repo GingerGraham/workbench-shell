@@ -32,7 +32,7 @@ ZSH_THEME="${ZSH_THEME:-jonathan}"
 # its master branch, unattended, into code sourced by every zsh -- outside
 # workbench's release tags, cooldown and adoption log. `reminder` shows a
 # notice at the configured frequency; update deliberately with `omz update`
-# (or `install-oh-my-zsh`, which runs it).
+# (or `wb tools upgrade oh-my-zsh`, which runs oh-my-zsh's own upgrade script).
 zstyle ':omz:update' mode reminder
 zstyle ':omz:update' frequency 7
 

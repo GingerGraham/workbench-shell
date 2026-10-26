@@ -4,6 +4,37 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`wb tools install oh-my-zsh` no longer replaces your `~/.zshrc`.**
+  oh-my-zsh's installer ran with no options: it backed up and replaced
+  `~/.zshrc` (dropping workbench's loader stub), offered to change your
+  login shell, and ended with `exec zsh`, which also ended a
+  `wb tools install all` run. It now runs unattended with
+  `--keep-zshrc`, `KEEP_ZSHRC=yes`, `RUNZSH=no` and `CHSH=no`;
+  `shell/omz.sh` loads oh-my-zsh itself.
+- **`wb tools upgrade oh-my-zsh` sees an existing install, and updates it
+  instead of reinstalling.** The "installed" check looked for the `omz`
+  command, a zsh function that never exists in the bash process `wb tools`
+  runs in. It now checks `~/.oh-my-zsh/oh-my-zsh.sh`, and an existing
+  install is updated with oh-my-zsh's own `tools/upgrade.sh`.
+- **A `cd` inside `$(…)` no longer captures a directory listing in zsh, and
+  your own `chpwd` keeps working.** The listing after `cd` is now a hook in
+  zsh's `chpwd_functions`, runs only at an interactive prompt (never in a
+  subshell or command substitution), and no longer replaces a `chpwd`
+  function you define. macOS uses `ls -AlhG` (BSD `ls` has no `--color`).
+- **`get-shell-functions` lists this module's names in zsh.** The
+  hand-written getter read `${BASH_SOURCE[0]}`, which zsh doesn't set, so
+  in zsh it printed `(none)`. It's removed; workbench-core 2.21's getter,
+  built from `register.getters[]`, is used instead. Its headers now read
+  "Shell/prompt/editor helpers (…) — functions:" / "— aliases:".
+
+### Changed
+
+- Requires workbench-core Core API 1.8 (`core_api: ">=1.8 <2.0"`): the
+  core-defined getter and `_wb_gh_release_asset_url`, which replaces this
+  module's private copy of the same helper.
+
 ## [0.8.2] - 2026-10-25
 
 ### Fixed

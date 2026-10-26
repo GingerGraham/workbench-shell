@@ -60,10 +60,24 @@ if [[ -n "${MANIFEST}" ]]; then
     done < <(grep -E '^[[:space:]]*(-[[:space:]]*)?src:' "${MANIFEST}" | sed -E 's/^[[:space:]]*-?[[:space:]]*src:[[:space:]]*//')
 fi
 
-if [[ -n "${MANIFEST}" ]] && grep -q '^core_api: ">=1.6 <2.0"$' "${MANIFEST}"; then
-    ok "core_api requires 1.6 (layers, _wb_prompt_hook_registered)"
+if [[ -n "${MANIFEST}" ]] && grep -q '^core_api: ">=1.8 <2.0"$' "${MANIFEST}"; then
+    ok "core_api requires 1.8 (core-defined getter, _wb_gh_release_asset_url)"
 else
-    fail "core_api must be \">=1.6 <2.0\""
+    fail "core_api must be \">=1.8 <2.0\""
+fi
+
+# Core API 1.8 defines get-shell-functions from register.getters[] (workbench-core
+# D89). A hand-written one would win over core's, and the old one read
+# ${BASH_SOURCE[0]} inside the function, which zsh doesn't set.
+if grep -rqE '^[[:space:]]*(function[[:space:]]+)?get-[a-z-]+-functions' "${REPO_ROOT}/shell/"; then
+    fail "shell/ defines a get-*-functions getter — core defines it from register.getters[]"
+else
+    ok "shell/ defines no get-*-functions getter (core's, from register.getters[], is used)"
+fi
+if [[ -n "${MANIFEST}" ]] && grep -q 'function: get-shell-functions' "${MANIFEST}"; then
+    ok "register.getters[] still declares get-shell-functions"
+else
+    fail "register.getters[] no longer declares get-shell-functions"
 fi
 
 # tmux.conf and vimrc are layers now (D82), never whole-file deploys.
