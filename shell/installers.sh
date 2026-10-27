@@ -10,21 +10,9 @@
 # WORKBENCH_OS/WORKBENCH_DISTRO/WORKBENCH_SHELL are workbench-core Core API
 # facts (contracts/core-api.md), replacing the precursor's DOTFILES_OS/
 # DOTFILES_DISTRO/DOTFILES_SHELL. _download_file_robust/_str_lower come from
-# workbench-core's Core API (lib/core/installers-common.sh, lib/core/functions.sh).
-
-# _gh_release_asset_url <api_response_json> <extended_regex_pattern>
-# Extracts the first browser_download_url whose filename matches <pattern>.
-# Small enough that it's duplicated per-module rather than promoted to Core
-# API (same as workbench-git's copy) — see workbench-core ARCHITECTURE.md
-# §12 D34 for the bar that's actually applied for promotion.
-_gh_release_asset_url() {
-    local api_response="$1" pattern="$2"
-    printf '%s' "${api_response}" \
-        | grep -Eo '"browser_download_url": *"[^"]+"' \
-        | sed -E 's/.*"(https[^"]+)"/\1/' \
-        | grep -E "${pattern}" \
-        | head -1
-}
+# workbench-core's Core API (lib/core/installers-common.sh, lib/core/functions.sh),
+# as do _wb_gh_release_asset_url (Core API 1.8, workbench-core D90),
+# _wb_gh_asset_digest and _wb_fetch_verified.
 
 # ── Oh-My-Posh install ────────────────────────────────────────────────────────
 
@@ -150,15 +138,19 @@ installed-starship() {
 
 # ── oh-my-zsh install ─────────────────────────────────────────────────────────
 
+# Same directory shell/omz.sh exports as ZSH and sources oh-my-zsh.sh from.
+_omz_dir() { printf '%s' "${HOME}/.oh-my-zsh"; }
+
 install-oh-my-zsh() {
-    if command -v omz &>/dev/null; then
-        if omz update; then
+    local zsh_dir; zsh_dir="$(_omz_dir)"
+    if [[ -f "${zsh_dir}/oh-my-zsh.sh" ]]; then
+        command -v zsh &>/dev/null || { log_error "oh-my-zsh: zsh is required to update it"; return 1; }
+        if ZSH="${zsh_dir}" zsh -f "${zsh_dir}/tools/upgrade.sh"; then
             log_info "oh-my-zsh updated successfully"
             return 0
-        else
-            log_error "oh-my-zsh update failed. Check your installation or try updating manually."
-            return 1
         fi
+        log_error "oh-my-zsh update failed. Check ${zsh_dir} or update it by hand."
+        return 1
     fi
 
     local install_url="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
@@ -196,17 +188,22 @@ install-oh-my-zsh() {
         return 1
     fi
 
-    sh "${tmp_script}"
+    # Unattended, and never touching ~/.zshrc: workbench's loader stub lives
+    # there, and shell/omz.sh loads oh-my-zsh itself. No login-shell change
+    # (wb tools install zsh-default-shell does that) and no `exec zsh` at the
+    # end, which ended a `wb tools install all` run.
+    ZSH="${zsh_dir}" KEEP_ZSHRC=yes RUNZSH=no CHSH=no \
+        sh "${tmp_script}" --unattended --keep-zshrc
     local rc=$?
     rm -f "${tmp_script}"
     return ${rc}
 }
 
-# Mirrors install-oh-my-zsh's own idempotency check — the omz CLI wrapper,
-# not the ~/.oh-my-zsh directory, since that's what the installer itself
-# already uses to decide "already installed" vs "fresh install".
+# The install directory, not the omz command: omz is a zsh function, and wb
+# runs this predicate in bash, where it never exists. Same check
+# install-oh-my-zsh uses to choose between updating and installing.
 installed-oh-my-zsh() {
-    command -v omz &>/dev/null
+    [[ -f "$(_omz_dir)/oh-my-zsh.sh" ]]
 }
 
 # ── zsh install ───────────────────────────────────────────────────────────────
@@ -255,13 +252,13 @@ install-zsh() {
             if [[ "${WORKBENCH_OS}" == "Mac" ]]; then
                 _zsh-install-brew
             else
-                log_error "install-zsh: unsupported distro '${WORKBENCH_DISTRO}' — install zsh manually"
+                log_error "zsh: unsupported distro '${WORKBENCH_DISTRO}' — install zsh manually"
                 return 1
             fi
             ;;
     esac || return 1
 
-    log_info "zsh installed. To set as your default shell, run: install-zsh-default-shell"
+    log_info "zsh installed. To set as your default shell, run: wb tools install zsh-default-shell"
 }
 
 installed-zsh() {
@@ -270,7 +267,7 @@ installed-zsh() {
 
 install-zsh-default-shell() {
     if ! command -v zsh &>/dev/null; then
-        log_error "zsh is not installed — run install-zsh first"
+        log_error "zsh is not installed — run 'wb tools install zsh' first"
         return 1
     fi
 
@@ -305,7 +302,32 @@ installed-zsh-default-shell() {
 # Installs zsh-autosuggestions and zsh-syntax-highlighting.
 # Delivery method, in priority order:
 #   1. Distro package manager    — system packages where available
-#   2. Standalone git clone      — fallback to ~/.local/share/zsh/plugins/
+#   2. Standalone git clone      — fallback to
+#                                  ${XDG_DATA_HOME:-~/.local/share}/zsh/plugins/
+
+# _zsh_plugin_path <plugin>
+# Sets _zsh_plugin_path_result to the first <plugin>.zsh that exists, in
+# the order shell/zsh-plugins.sh sources from, or returns 1. A copy of
+# shell/zsh-plugins.sh's _zsh_plugin_path (that file is zsh-only and
+# returns before defining anything in bash, where wb tools runs this one):
+# change both together.
+_zsh_plugin_path() {
+    local _p="$1" _f
+    _zsh_plugin_path_result=""
+    for _f in "${HOME}/.zsh/${_p}/${_p}.zsh" \
+              "${XDG_DATA_HOME:-${HOME}/.local/share}/zsh/plugins/${_p}/${_p}.zsh" \
+              "/usr/share/${_p}/${_p}.zsh" \
+              "/usr/share/zsh/plugins/${_p}/${_p}.zsh" \
+              "${HOMEBREW_PREFIX:-/opt/homebrew}/share/${_p}/${_p}.zsh" \
+              "/usr/local/share/${_p}/${_p}.zsh" \
+              "${HOME}/.oh-my-zsh/custom/plugins/${_p}/${_p}.plugin.zsh"; do
+        if [[ -f "${_f}" ]]; then
+            _zsh_plugin_path_result="${_f}"
+            return 0
+        fi
+    done
+    return 1
+}
 
 _zsh-plugins-install-packages-dnf() {
     local elevation_cmd; elevation_cmd="$(get-elevation-command)" || return 1
@@ -333,7 +355,7 @@ _zsh-plugins-install-packages-brew() {
 }
 
 _zsh-plugins-install-standalone() {
-    local plugin_dir="${HOME}/.local/share/zsh/plugins"
+    local plugin_dir="${XDG_DATA_HOME:-${HOME}/.local/share}/zsh/plugins"
     mkdir -p "${plugin_dir}"
 
     log_info "Installing zsh plugins to ${plugin_dir}..."
@@ -365,14 +387,11 @@ _zsh-plugins-install-standalone() {
     log_info "Plugins installed. Reload your shell to activate."
 }
 
+# No "must be run from zsh" check: wb tools always runs installers in bash
+# (WORKBENCH_SHELL=bash), so it could never pass.
 install-zsh-plugins() {
-    if [[ "${WORKBENCH_SHELL}" != "zsh" ]]; then
-        log_error "install-zsh-plugins: must be run from zsh"
-        return 1
-    fi
-
     if ! command -v zsh &>/dev/null; then
-        log_error "install-zsh-plugins: zsh not found — run install-zsh first"
+        log_error "zsh-plugins: zsh not found — run 'wb tools install zsh' first"
         return 1
     fi
 
@@ -398,16 +417,11 @@ install-zsh-plugins() {
     _zsh-plugins-install-standalone
 }
 
-# No installed-zsh-plugins predicate: install-zsh-plugins installs two
-# plugins via whichever of five different delivery paths succeeds first
-# (dnf/apt/zypper/pacman/brew package, or a standalone git clone to
-# ~/.local/share/zsh/plugins/), each landing files at a different,
-# distro-specific path, and unlike every other installer in this file it
-# never verifies its own success — no existing check to mirror. A
-# multi-path guess would be exactly the "not confident it's genuinely
-# correct" case docs/module-authoring.md says to leave undeclared. Stays
-# unresponsive to `wb tools upgrade`; fully installable via `wb tools
-# install zsh-plugins`.
+# Both plugins resolve through the same path list shell/zsh-plugins.sh
+# sources from — so "installed" means "a new zsh will load them".
+installed-zsh-plugins() {
+    _zsh_plugin_path zsh-autosuggestions && _zsh_plugin_path zsh-syntax-highlighting
+}
 
 # ── direnv install ────────────────────────────────────────────────────────────
 
@@ -484,21 +498,10 @@ install-direnv() {
 
     if command -v direnv &>/dev/null; then
         log_info "direnv installed: $(direnv version 2>/dev/null)"
-
-        # Attempt to install the shell hook into this session immediately —
-        # this module's own shell/direnv.sh, resolved relative to this file
-        # (both live in the same fetched snapshot — contracts/manifest-spec.md
-        # D16: register.list points straight at <module>/current/<src>).
-        local _installers_dir; _installers_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        local direnv_tool_file="${_installers_dir}/direnv.sh"
-        if [[ -f "${direnv_tool_file}" ]]; then
-            # shellcheck disable=SC1090
-            source "${direnv_tool_file}"
-        fi
-
+        # wb tools runs in its own process, so nothing here can hook direnv
+        # into your shell; shell/direnv.sh does that when a shell starts.
         echo
-        log_warn "If 'direnv allow' or .envrc loading doesn't work in this shell,"
-        log_warn "open a new terminal / log out and back in to fully activate direnv."
+        log_info "Start a new shell to activate direnv's hook."
         echo
         echo "  Allow a project's .envrc with:"
         echo "    direnv allow"
@@ -547,14 +550,19 @@ _fzf-install-mac() {
     if command -v fzf &>/dev/null; then brew upgrade fzf; else brew install fzf; fi
 }
 
-# Binary fallback — latest GitHub release → ~/.local/bin
+# Binary fallback — latest GitHub release → ~/.local/bin. The tarball is
+# checked against the SHA-256 GitHub publishes for it before it's unpacked;
+# no published digest, no install.
 _fzf-install-binary() {
     log_info "fzf: falling back to binary install from GitHub releases..."
     command -v curl &>/dev/null || { log_error "curl is required"; return 1; }
     command -v tar  &>/dev/null || { log_error "tar is required";  return 1; }
 
     local api_response ver arch url asset tmp_dir
-    api_response="$(curl -s https://api.github.com/repos/junegunn/fzf/releases/latest)"
+    if ! api_response="$(curl -fsSL https://api.github.com/repos/junegunn/fzf/releases/latest)"; then
+        log_error "fzf: GitHub API request failed (rate limit or network)"
+        return 1
+    fi
     ver="$(printf '%s' "${api_response}" | grep '"tag_name":' \
         | sed -E 's/.*"tag_name": *"v?([^"]+)".*/\1/' | head -1)"
     [[ -z "${ver}" ]] && { log_error "fzf: could not determine latest version"; return 1; }
@@ -566,14 +574,23 @@ _fzf-install-binary() {
     esac
 
     asset="fzf-${ver}-linux_${arch}.tar.gz"
-    url="$(_gh_release_asset_url "${api_response}" "fzf-${ver}-linux_${arch}\.tar\.gz")"
+    url="$(_wb_gh_release_asset_url "${api_response}" "fzf-${ver}-linux_${arch}\.tar\.gz")"
     [[ -z "${url}" ]] && { log_error "fzf: no matching asset for ${asset}"; return 1; }
+    local digest; digest="$(_wb_gh_asset_digest "${api_response}" "${url}")"
+    if [[ -z "${digest}" ]]; then
+        log_error "fzf: no published SHA-256 for ${asset} — refusing to install"
+        return 1
+    fi
 
-    tmp_dir="$(mktemp -d)"
-    _download_file_robust "${url}" "${tmp_dir}/${asset}" || { rm -rf "${tmp_dir}"; return 1; }
-    tar -xzf "${tmp_dir}/${asset}" -C "${tmp_dir}"
+    tmp_dir="$(mktemp -d)" || { log_error "fzf: mktemp failed"; return 1; }
+    _wb_fetch_verified "${url}" "${tmp_dir}/${asset}" "${digest}" || { rm -rf "${tmp_dir}"; return 1; }
+    if ! tar -xzf "${tmp_dir}/${asset}" -C "${tmp_dir}"; then
+        log_error "fzf: extraction failed"
+        rm -rf "${tmp_dir}"
+        return 1
+    fi
     mkdir -p "${HOME}/.local/bin"
-    install -m 755 "${tmp_dir}/fzf" "${HOME}/.local/bin/fzf"
+    install -m 755 "${tmp_dir}/fzf" "${HOME}/.local/bin/fzf" || { rm -rf "${tmp_dir}"; return 1; }
     rm -rf "${tmp_dir}"
     log_info "fzf ${ver} installed to ~/.local/bin/fzf"
 }
@@ -751,11 +768,11 @@ _neovim_cleanup_package_install() {
 # Prune every ~/.local/opt/nvim-* directory except the one just installed.
 _neovim_prune_old_installs() {
     local keep_dir="$1" d
-    if [[ -n "${ZSH_VERSION}" ]]; then setopt nullglob; else shopt -s nullglob; fi
+    if [[ -n "${ZSH_VERSION:-}" ]]; then setopt nullglob; else shopt -s nullglob; fi
     for d in "${HOME}/.local/opt"/nvim-*; do
         [[ -d "${d}" && "${d}" != "${keep_dir}" ]] && rm -rf "${d}"
     done
-    if [[ -n "${ZSH_VERSION}" ]]; then unsetopt nullglob; else shopt -u nullglob; fi
+    if [[ -n "${ZSH_VERSION:-}" ]]; then unsetopt nullglob; else shopt -u nullglob; fi
 }
 
 install-neovim() {
@@ -778,9 +795,16 @@ install-neovim() {
     local asset; asset="$(_neovim_asset_name)" || return 1
     local asset_pattern; asset_pattern="$(printf '%s' "${asset}" | sed 's/\./\\./g')"
     local download_url
-    download_url="$(_gh_release_asset_url "${api_response}" "${asset_pattern}\$")"
+    download_url="$(_wb_gh_release_asset_url "${api_response}" "${asset_pattern}\$")"
     if [[ -z "${download_url}" ]]; then
         log_error "neovim: no release asset matching ${asset} in ${tag}"
+        return 1
+    fi
+    # Checked against the SHA-256 GitHub publishes for the asset before
+    # anything is extracted; no published digest, no install.
+    local digest; digest="$(_wb_gh_asset_digest "${api_response}" "${download_url}")"
+    if [[ -z "${digest}" ]]; then
+        log_error "neovim: no published SHA-256 for ${asset} in ${tag} — refusing to install"
         return 1
     fi
 
@@ -788,9 +812,9 @@ install-neovim() {
     _neovim_cleanup_appimage_file
     _neovim_cleanup_package_install
 
-    local tmp_dir; tmp_dir="$(mktemp -d)"
+    local tmp_dir; tmp_dir="$(mktemp -d)" || { log_error "neovim: mktemp failed"; return 1; }
     log_info "Downloading ${asset}..."
-    if ! _download_file_robust "${download_url}" "${tmp_dir}/${asset}"; then
+    if ! _wb_fetch_verified "${download_url}" "${tmp_dir}/${asset}" "${digest}"; then
         rm -rf "${tmp_dir}"; return 1
     fi
 

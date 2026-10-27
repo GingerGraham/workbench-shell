@@ -38,6 +38,14 @@ fi
 FAKE
 chmod +x "${WORK}/bin/direnv"
 
+# Core API 1.8's availability declarations (lib/core/functions.sh), as
+# no-ops: this suite runs without core. tests/check-availability.sh checks
+# the declarations themselves.
+# shellcheck disable=SC2317 # called by the sourced shell files
+_wb_alias_availability()   { :; }
+_wb_declare_availability() { :; }
+_wb_availability_needs()   { :; }
+
 # run_direnv_sh <preset PROMPT_COMMAND>
 # Sources shell/direnv.sh in a fresh subshell, with workbench-core's log
 # functions and its Core API 1.6 _wb_prompt_hook_registered (copied from

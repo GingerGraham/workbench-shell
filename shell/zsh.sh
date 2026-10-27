@@ -70,9 +70,22 @@ bindkey ' ' magic-space
 bindkey '^_' undo
 
 # ── Directory change hook ─────────────────────────────────────────────────────
-# Auto-list directory contents after every cd (but not in home directory)
-chpwd() {
-    [[ "$PWD" != "$HOME" ]] && ls -Alh --color=auto
+# List the directory after a cd typed at the prompt (not in the home
+# directory). Added to zsh's hook list, so a chpwd of your own still runs.
+# Never inside $(…) or a subshell, where the listing would become part of
+# captured output (workbench-core D96). BSD ls on macOS has no --color.
+_shell_chpwd_list() {
+    [[ -o interactive ]] || return 0
+    (( ZSH_SUBSHELL == 0 )) || return 0
+    [[ "$PWD" != "$HOME" ]] || return 0
+    if [[ "${WORKBENCH_OS:-}" == "Mac" ]]; then
+        ls -AlhG
+    else
+        ls -Alh --color=auto
+    fi
+    return 0
 }
+typeset -ga chpwd_functions
+(( ${chpwd_functions[(I)_shell_chpwd_list]} )) || chpwd_functions+=(_shell_chpwd_list)
 
 log_debug "zsh: shell-specific config loaded"

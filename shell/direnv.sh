@@ -10,6 +10,9 @@
 # files/direnv.toml (workbench.yml deploy[]), created once, never
 # overwritten — see this repo's README for what it sets.
 
+# Availability (workbench-core docs/module-authoring.md).
+_wb_declare_availability direnv edit-direnv-config direnv-init-project
+
 # ── Quieter output ────────────────────────────────────────────────────────
 # Suppresses the "direnv: loading/unloading ..." lines on every cd.
 # Per-call verbosity for debugging: DIRENV_LOG_FORMAT='direnv: %s' direnv reload

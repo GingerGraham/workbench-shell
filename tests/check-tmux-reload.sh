@@ -37,6 +37,9 @@ in_shell() {
         $([[ "$1" == "bash" ]] && echo 'shopt -s expand_aliases')
         ${OLD_ALIAS}
         log_error() { echo \"ERROR: \$*\"; }
+        _wb_alias_availability() { :; }
+        _wb_declare_availability() { :; }
+        _wb_availability_needs() { :; }
         source '${REPO_ROOT}/shell/aliases.sh' || exit 9
         $2" 2>&1
 }

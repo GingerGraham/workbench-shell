@@ -35,9 +35,46 @@ wb install --bundle workstation
   (workbench-core D82).
 - `starship.toml` and `direnv.toml` — kept current until you edit them,
   never touched once you have (workbench-core D81).
-- `install-oh-my-posh`, `install-starship`, `install-oh-my-zsh`,
-  `install-zsh`, `install-zsh-default-shell`, `install-zsh-plugins`,
-  `install-direnv`, `install-fzf`, `install-neovim` — via `wb tools update`.
+- Installers for `oh-my-posh`, `starship`, `oh-my-zsh`, `zsh`,
+  `zsh-default-shell`, `zsh-plugins`, `direnv`, `fzf` and `neovim` —
+  `wb tools install <name>` (e.g. `wb tools install neovim`), and
+  `wb tools upgrade <name>` to update one that's installed. See
+  [What each installer verifies](#what-each-installer-verifies).
+- Names that need a tool you don't have (e.g. `tmux-new` without tmux,
+  `cat` → `bat` without bat) aren't defined; `wb functions` lists them
+  separately, with what each needs.
+
+## What each installer verifies
+
+| Installer | Linux | macOS |
+|---|---|---|
+| `oh-my-posh` | oh-my-posh's own install script (`ohmyposh.dev/install.sh`), **run unverified**. Updates with `oh-my-posh upgrade`. | Homebrew (`jandedobbeleer/oh-my-posh` tap); the install script without Homebrew |
+| `starship` | starship's own install script (`starship.rs/install.sh`), **run unverified**, into `~/.local/bin`. | Homebrew |
+| `oh-my-zsh` | oh-my-zsh's own install script (`tools/install.sh` from its `master` branch), **run unverified**, unattended and without touching `~/.zshrc`. Updates with oh-my-zsh's own `tools/upgrade.sh`, which pulls `master`. | Same |
+| `zsh` | Distro package (dnf, apt, zypper, pacman). | Homebrew |
+| `zsh-default-shell` | Nothing downloaded: adds zsh to `/etc/shells` if needed, then `chsh`. | Same |
+| `zsh-plugins` | Distro packages; where there are none, a `git clone` of each `zsh-users` repository's default branch over HTTPS, **unverified**. | Homebrew |
+| `direnv` | Distro package; on other distros, direnv's own install script (`direnv.net/install.sh`), **run unverified**. | Homebrew |
+| `fzf` | Distro package; on other distros, the release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). | Homebrew |
+| `neovim` | The release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). | Same |
+
+The four vendor install scripts (oh-my-posh, starship, oh-my-zsh and
+direnv's) are downloaded to a file and run only if the download
+succeeded, but nothing checks what they contain: none of these projects
+publishes a signature or checksum for its script. That is a deliberate
+decision (2026-10: accept and document), not an oversight. If you'd
+rather not run them, install those tools from your package manager or
+Homebrew instead.
+
+**tmux plugins.** `files/tmux.conf` (the block at the top of your tmux
+config) uses TPM. On the first tmux start without `~/.tmux/plugins/tpm`,
+tmux runs `git clone https://github.com/tmux-plugins/tpm` and installs the
+listed plugins, unverified, from their default branches. It also sets
+`@continuum-boot 'on'`, which makes tmux-continuum install a boot-time
+autostart for tmux on that first start. If you don't want the autostart,
+set `set -g @continuum-boot 'off'` in your own tmux config, below the
+block — your settings win. To skip the whole block (and TPM with it), see
+[tmux and vim](#tmux-and-vim-a-block-in-your-own-file).
 
 ## Prompt engine election
 
@@ -53,7 +90,14 @@ file is self-electing:
 
 oh-my-zsh is set to `reminder` update mode: it shows a notice every 7
 days rather than pulling its own `master` branch unattended. Update
-deliberately with `omz update` (or `install-oh-my-zsh`, which runs it).
+deliberately with `omz update` (or `wb tools upgrade oh-my-zsh`, which
+runs oh-my-zsh's own upgrade script).
+
+`wb tools install oh-my-zsh` runs oh-my-zsh's installer unattended and
+leaves your `~/.zshrc` alone (workbench's loader stub lives there, and
+`shell/omz.sh` loads oh-my-zsh itself). It doesn't change your login
+shell — `wb tools install zsh-default-shell` does that — and doesn't
+start a new zsh when it finishes.
 
 Set `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to `omp`, `starship`, or `omz` in
 `~/.config/workbench/local/overrides/shell.sh` (see below) to force a

@@ -7,6 +7,41 @@
 # updating the get-installers reference to wb tools (§ below) — no
 # get-installers function exists in workbench-core's Core API.
 
+# Availability (workbench-core docs/module-authoring.md). The aliases below
+# are defined only when their tool exists, but listings read this file
+# statically, so each block declares what it needs.
+_shell_have_route_tool() { command -v ip &>/dev/null || command -v netstat &>/dev/null; }
+_shell_have_bat()        { command -v bat &>/dev/null || command -v batcat &>/dev/null; }
+_shell_have_top()        { command -v btop &>/dev/null || command -v htop &>/dev/null; }
+_shell_in_zsh()          { [[ -n "${ZSH_VERSION:-}" ]]; }
+_shell_in_bash()         { [[ -n "${BASH_VERSION:-}" && -z "${ZSH_VERSION:-}" ]]; }
+_shell_have_ip_lookup()  { command -v dig &>/dev/null || command -v curl &>/dev/null; }
+_shell_have_get_functions() { command -v get-functions &>/dev/null; }
+_wb_alias_availability --needs "ip (iproute2) or netstat" _shell_have_route_tool routeprint printrt
+_wb_alias_availability --needs "bat (bat or batcat)"      _shell_have_bat cat
+_wb_alias_availability --needs "btop or htop"             _shell_have_top top
+_wb_alias_availability --needs "zsh (the current shell)"  _shell_in_zsh zshconfig zshreload history
+_wb_alias_availability --needs "bash (the current shell)" _shell_in_bash bashconfig bashreload
+_wb_alias_availability --needs "dig or curl"              _shell_have_ip_lookup get-public-ip
+_wb_alias_availability --needs "workbench-core's get-functions" _shell_have_get_functions aliases reset-shell rs
+_wb_declare_availability ssh-add       sshclear
+_wb_declare_availability batcat        bat
+_wb_declare_availability python3       python get-python-versions
+_wb_declare_availability pip3          pip
+_wb_declare_availability acpi          battery power
+_wb_declare_availability tmux          tmux-new tmux-attach tmux-reload
+_wb_declare_availability code-insiders code
+_wb_declare_availability wl-copy       copy clip
+_wb_declare_availability nautilus      explorer
+_wb_declare_availability nordvpn       nordc nordd
+_wb_declare_availability cmatrix       matrix
+_wb_declare_availability it2profile    solarized black smooth
+_wb_declare_availability wb            installers
+# open-workspace is shell/editors.sh's, with a hand-written predicate there.
+# Its needs text goes here: editors.sh is tier env, which loads before core
+# defines _wb_availability_needs (Core API, tier core).
+_wb_availability_needs "VS Code (code or code-insiders)" open-workspace
+
 # ── Filesystem ────────────────────────────────────────────────────────────────
 alias lsa="ls -Alhi"
 alias lsr="ls -Alhitr"
@@ -14,11 +49,11 @@ alias dirsize="du -sh"
 alias cls="clear"
 
 # ── Network diagnostics ───────────────────────────────────────────────────────
-# Prefer ss (iproute2, standard on modern Linux) over the deprecated netstat.
-# Fall back to netstat for macOS and any system without ss.
-if command -v ss &>/dev/null; then
-    alias routeprint="ss -rn"
-    alias printrt="ss -rn"
+# The routing table: ip route (iproute2) on Linux, netstat -rn on macOS and
+# anywhere without ip. Not ss -rn, which lists sockets, not routes.
+if [[ "${WORKBENCH_OS:-}" != "Mac" ]] && command -v ip &>/dev/null; then
+    alias routeprint="ip route"
+    alias printrt="ip route"
 elif command -v netstat &>/dev/null; then
     alias routeprint="netstat -rn"
     alias printrt="netstat -rn"
@@ -43,8 +78,14 @@ elif command -v htop &>/dev/null; then
 fi
 
 # ── Python ────────────────────────────────────────────────────────────────────
-command -v python3 &>/dev/null && alias python="python3"
-command -v pip3    &>/dev/null && alias pip="pip3"
+# if-blocks, not `command -v … && alias`: listings find an alias only at
+# the start of a line.
+if command -v python3 &>/dev/null; then
+    alias python="python3"
+fi
+if command -v pip3 &>/dev/null; then
+    alias pip="pip3"
+fi
 
 # ── acpi power ────────────────────────────────────────────────────────────────
 if command -v acpi &>/dev/null; then
@@ -79,7 +120,9 @@ if command -v tmux &>/dev/null; then
 fi
 
 # ── VS Code ───────────────────────────────────────────────────────────────────
-command -v code-insiders &>/dev/null && alias code="code-insiders"
+if command -v code-insiders &>/dev/null; then
+    alias code="code-insiders"
+fi
 
 # ── Clipboard (Wayland) ───────────────────────────────────────────────────────
 if command -v wl-copy &>/dev/null; then
@@ -88,7 +131,9 @@ if command -v wl-copy &>/dev/null; then
 fi
 
 # ── File manager ──────────────────────────────────────────────────────────────
-command -v nautilus &>/dev/null && alias explorer="nautilus --browser &"
+if command -v nautilus &>/dev/null; then
+    alias explorer="nautilus --browser &"
+fi
 
 # ── VPN ───────────────────────────────────────────────────────────────────────
 if command -v nordvpn &>/dev/null; then
@@ -97,7 +142,9 @@ if command -v nordvpn &>/dev/null; then
 fi
 
 # ── Fun ───────────────────────────────────────────────────────────────────────
-command -v cmatrix &>/dev/null && alias matrix="cmatrix -abs"
+if command -v cmatrix &>/dev/null; then
+    alias matrix="cmatrix -abs"
+fi
 
 # ── get-functions shortcut ────────────────────────────────────────────────────
 # reset-shell/rs are meant to redisplay the same quick summary a fresh
@@ -138,52 +185,40 @@ if command -v it2profile &>/dev/null; then
 fi
 
 # ── Shell-specific ────────────────────────────────────────────────────────────
-if [[ -n "${ZSH_VERSION}" ]]; then
+if _shell_in_zsh; then
     alias zshconfig='${VISUAL:-vim} "${HOME}/.zshrc"'
     alias zshreload="exec zsh"
     alias history="history 1"
 fi
 
-if [[ -n "${BASH_VERSION}" ]]; then
+if _shell_in_bash; then
     alias bashconfig='${VISUAL:-vim} "${HOME}/.bashrc"'
     alias bashreload="exec bash"
 fi
 
 # ── functions ────────────────────────────────────────────────────────────
 
-# List installed Python 3.x interpreters and their versions. Ported from
-# workbench-precursor's core/functions.sh, unchanged.
+# List installed Python 3.x interpreters and their versions. find, not a
+# /usr/bin/python3* glob: an unmatched glob is an error in zsh and a
+# literal in bash.
 get-python-versions() {
     log_info "Python versions found:"
-    for version in /usr/bin/python3*; do
-        [[ "${version}" == *-config ]] && continue
-        echo "$(basename "${version}"): $("${version}" --version 2>&1)"
-    done
+    local version
+    find /usr/bin /usr/local/bin -maxdepth 1 -type f -name 'python3*' ! -name '*-config' 2>/dev/null \
+        | sort \
+        | while IFS= read -r version; do
+            echo "$(basename "${version}"): $("${version}" --version 2>&1)"
+        done
 }
 
 # Public IPv4/IPv6 lookup — dig if available, curl (icanhazip.com)
-# otherwise. Ported from workbench-precursor's core/functions.sh,
-# unchanged.
+# otherwise. curl -f: an HTTP error page isn't printed as an address.
 get-public-ip() {
     if command -v dig &>/dev/null; then
         echo "IPv4: $(dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{print $2}')"
         echo "IPv6: $(dig -6 TXT +short o-o.myaddr.l.google.com @ns1.google.com | awk -F'"' '{print $2}')"
     else
-        echo "IPv4: $(curl -s https://ipv4.icanhazip.com)"
-        echo "IPv6: $(curl -s https://ipv6.icanhazip.com)"
+        echo "IPv4: $(curl -fsS https://ipv4.icanhazip.com)"
+        echo "IPv6: $(curl -fsS https://ipv6.icanhazip.com)"
     fi
-}
-
-get-shell-functions() {
-    local _dir; _dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    local -a _files=(
-        "${_dir}/aliases.sh" "${_dir}/bash.sh" "${_dir}/zsh.sh"
-        "${_dir}/omp.sh" "${_dir}/starship.sh" "${_dir}/omz.sh"
-        "${_dir}/zsh-plugins.sh" "${_dir}/direnv.sh" "${_dir}/fzf.sh"
-        "${_dir}/editors.sh"
-    )
-    # installers.sh is deliberately excluded — its install-* functions are
-    # surfaced via `wb tools list`, not this getter.
-    _get_functions_in "Shell functions" "" "${_files[@]}"
-    _get_aliases_in "Shell aliases" "" "${_files[@]}"
 }

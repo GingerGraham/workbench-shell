@@ -24,7 +24,15 @@ fail() { check_no=$((check_no + 1)); echo "FAIL: [$check_no] $*"; FAILED=$((FAIL
 # references it without a ${VAR:-} default — same convention
 # tests/check-editor-override.sh already uses for editors.sh's DISPLAY/
 # WAYLAND_DISPLAY references.
+# shellcheck disable=SC2317 # called by the sourced aliases.sh
 get-functions() { :; }
+# Core API 1.8's availability declarations (lib/core/functions.sh), as
+# no-ops: this suite runs without core. tests/check-availability.sh checks
+# the declarations themselves.
+# shellcheck disable=SC2317 # called by the sourced shell files
+_wb_alias_availability()   { :; }
+_wb_declare_availability() { :; }
+_wb_availability_needs()   { :; }
 ZSH_VERSION=""
 # shellcheck disable=SC1091
 source "${REPO_ROOT}/shell/aliases.sh"
