@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-10-27
+
 ### Fixed
 
 - **`wb tools install oh-my-zsh` no longer replaces your `~/.zshrc`.**
