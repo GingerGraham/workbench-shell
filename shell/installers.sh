@@ -595,6 +595,52 @@ _fzf-install-binary() {
     log_info "fzf ${ver} installed to ~/.local/bin/fzf"
 }
 
+# Lowest fzf that supports `fzf --bash` / `fzf --zsh` (added in 0.48.0).
+# A function rather than a top-level variable so it does not depend on
+# when this file happens to be sourced.
+_fzf-min-version() {
+    printf '%s\n' "0.48.0"
+}
+
+# _fzf-installed-version
+# Prints X.Y.Z of the fzf first on PATH, or nothing if there is none or the
+# output cannot be parsed. "0.44.1 (debian)" -> "0.44.1"; "0.48.0-dev" -> "0.48.0".
+_fzf-installed-version() {
+    local raw
+    raw="$(fzf --version 2>/dev/null)" || return 1
+    raw="${raw%% *}"
+    raw="${raw%%-*}"
+    [[ -n "${raw}" ]] || return 1
+    printf '%s\n' "${raw}"
+}
+
+# _fzf-version-ge <have> <need>
+# True when <have> >= <need>, compared segment by segment as numbers
+# (0.9.0 is below 0.48.0). A missing segment counts as 0. Empty or
+# non-numeric <have> is "not satisfied". workbench-core's _wb_semver_cmp is
+# not Core API, so the comparison lives here.
+_fzf-version-ge() {
+    local have="$1" need="$2"
+    case "${have}" in
+        ""|.*|*.|*..*|*[!0-9.]*) return 1 ;;
+    esac
+
+    local have_parts need_parts i have_part need_part
+    IFS=. read -r -a have_parts <<< "${have}"
+    IFS=. read -r -a need_parts <<< "${need}"
+    for i in 0 1 2; do
+        have_part="${have_parts[i]:-0}"
+        need_part="${need_parts[i]:-0}"
+        # 10# keeps a segment such as 08 from being read as octal.
+        if [[ "$((10#${have_part}))" -gt "$((10#${need_part}))" ]]; then
+            return 0
+        elif [[ "$((10#${have_part}))" -lt "$((10#${need_part}))" ]]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
 install-fzf() {
     log_info "Installing or updating fzf..."
 
@@ -604,21 +650,42 @@ install-fzf() {
         *) log_error "Unsupported OS for fzf install"; return 1 ;;
     esac
 
-    local ok=1
-    case "${WORKBENCH_DISTRO}" in
-        rhel)   _fzf-install-rhel   && ok=0 ;;
-        debian) _fzf-install-debian && ok=0 ;;
-        suse)   _fzf-install-suse   && ok=0 ;;
-        arch)   _fzf-install-arch   && ok=0 ;;
-        *)      log_warn "fzf: unknown distro (${WORKBENCH_DISTRO}) — trying binary install" ;;
-    esac
+    local ok=1 min_version
+    min_version="$(_fzf-min-version)"
+
+    if [[ "$(command -v fzf 2>/dev/null)" == "${HOME}/.local/bin/fzf" ]]; then
+        # The active fzf is one this function placed from the upstream
+        # release. The distro package cannot upgrade it, so refresh it the
+        # same way (leaves ok=1 -> binary path below).
+        log_info "fzf: active install is ~/.local/bin/fzf — refreshing it from the upstream release"
+    else
+        case "${WORKBENCH_DISTRO}" in
+            rhel)   _fzf-install-rhel   && ok=0 ;;
+            debian) _fzf-install-debian && ok=0 ;;
+            suse)   _fzf-install-suse   && ok=0 ;;
+            arch)   _fzf-install-arch   && ok=0 ;;
+            *)      log_warn "fzf: unknown distro (${WORKBENCH_DISTRO}) — trying binary install" ;;
+        esac
+
+        # Distro install succeeded but the package is too old for shell
+        # integration: treat it the same as a failed distro install.
+        if [[ "${ok}" -eq 0 ]] && ! _fzf-version-ge "$(_fzf-installed-version)" "${min_version}"; then
+            log_warn "fzf: distro package $(_fzf-installed-version) is older than ${min_version}, which shell integration needs — installing the upstream release to ~/.local/bin"
+            ok=1
+        fi
+    fi
+
     [[ "${ok}" -ne 0 ]] && { _fzf-install-binary || return 1; }
 
-    if command -v fzf &>/dev/null; then
-        log_info "fzf installed: $(fzf --version)"
-    else
+    if ! command -v fzf &>/dev/null; then
         log_warn "fzf not on PATH after install — check ~/.local/bin is in PATH"
+        return 1
     fi
+    if ! _fzf-version-ge "$(_fzf-installed-version)" "${min_version}"; then
+        log_warn "fzf: $(_fzf-installed-version) is first on PATH but older than ${min_version} — run 'type -a fzf'; ~/.local/bin must come before the distro directory in PATH (open a new login shell if ~/.local/bin was just created)"
+        return 1
+    fi
+    log_info "fzf installed: $(fzf --version)"
 }
 
 installed-fzf() {

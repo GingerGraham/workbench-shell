@@ -14,6 +14,16 @@ All notable changes to `workbench-shell` are documented here.
   the fzf version and the fix, `wb tools upgrade fzf`. Scripts and other
   non-interactive shells stay silent.
 
+- **`wb tools install fzf` no longer stops at a distro fzf too old for shell
+  integration.** After the distro install, `install-fzf` checks the version
+  against 0.48.0, the first release with `fzf --bash` and `fzf --zsh`. If the
+  package is older (Pop!_OS ships 0.44.1), it installs
+  the upstream release to `~/.local/bin` as it already did when the distro
+  install failed, and fails with a hint if an older fzf still comes first on
+  `PATH`. When the active fzf is `~/.local/bin/fzf`, `wb tools upgrade fzf`
+  refreshes it from the upstream release. Distros with a current fzf, such
+  as Fedora and Arch, install nothing into `~/.local/bin`.
+
 ### Changed
 
 - **Bug report template asks for OS family and environment separately.**
