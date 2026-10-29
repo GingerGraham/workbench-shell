@@ -10,14 +10,22 @@
 # key bindings plus fuzzy tab completion. Without fzf, nothing is evaluated:
 # the output of whatever ran instead would be, and on Ubuntu bash's
 # command-not-found handler prints a line starting "Please" that bash then
-# ran as a command (workbench-core D94). eval "$(…)", not source <(…):
-# bash 3.2 (macOS) sources nothing from a process substitution.
+# ran as a command (workbench-core D94). eval of captured output, not
+# source <(…): bash 3.2 (macOS) sources nothing from a process substitution.
 if ! command -v fzf &>/dev/null; then
     log_debug "fzf: not installed — shell integration skipped (wb tools install fzf)"
-elif [[ "${WORKBENCH_SHELL}" == "zsh" ]]; then
-    eval "$(fzf --zsh 2>/dev/null)" || true
-elif [[ "${WORKBENCH_SHELL}" == "bash" ]]; then
-    eval "$(fzf --bash 2>/dev/null)" || true
+elif [[ "${WORKBENCH_SHELL}" == "zsh" || "${WORKBENCH_SHELL}" == "bash" ]]; then
+    # fzf --bash / --zsh need fzf 0.48.0+. Older builds exit non-zero and
+    # print nothing on stdout, which evaluating it as before treated as
+    # success — the integration was silently skipped. Capture first,
+    # evaluate only real output, and say so when there is none.
+    _wb_fzf_init="$(fzf "--${WORKBENCH_SHELL}" 2>/dev/null)"
+    if [[ -n "${_wb_fzf_init}" ]]; then
+        eval "${_wb_fzf_init}"
+    elif [[ $- == *i* ]]; then
+        log_warn "fzf: $(fzf --version 2>/dev/null | cut -d' ' -f1) is too old for shell integration (needs 0.48.0+) — Ctrl-R/Ctrl-T/Alt-C not bound. Fix: wb tools upgrade fzf"
+    fi
+    unset _wb_fzf_init
 fi
 
 # ── Default display options ───────────────────────────────────────────────────
