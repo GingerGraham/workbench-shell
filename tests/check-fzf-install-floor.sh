@@ -145,6 +145,23 @@ version_ge_case abc     0.48.0 no
 version_ge_case 0..1    0.48.0 no
 version_ge_case 0.48.0. 0.48.0 no
 
+# The same comparison under zsh, where `read -a` and 0-based array indexing
+# do not exist: the function is lifted out of installers.sh and run there.
+if command -v zsh &>/dev/null; then
+    zsh_cases="0.9.0 0.48.0 no|0.44.1 0.48.0 no|0.48.0 0.48.0 yes|0.48.1 0.48.0 yes|0.100.0 0.48.0 yes|0.48 0.48.0 yes|0.08.0 0.8.0 yes|abc 0.48.0 no|0..1 0.48.0 no"
+    zsh_got="$(zsh -c "$(sed -n '/^_fzf-version-ge() {/,/^}/p' "${REPO_ROOT}/shell/installers.sh")
+        for c in \${(s:|:)1}; do
+            set -- \${=c}
+            r=no; _fzf-version-ge \"\$1\" \"\$2\" && r=yes
+            [[ \"\$r\" == \"\$3\" ]] || echo \"MISMATCH \$c (got \$r)\"
+        done" -- "${zsh_cases}" 2>&1)"
+    [[ -z "${zsh_got}" ]] \
+        && ok "zsh: _fzf-version-ge gives the same answers as in bash" \
+        || fail "zsh: _fzf-version-ge: ${zsh_got}"
+else
+    echo "SKIP: zsh not installed — zsh comparison check skipped"
+fi
+
 # ── install-fzf ──────────────────────────────────────────────────────────────
 # Distro package too old (the Pop!_OS case): upstream release is installed.
 reset

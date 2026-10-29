@@ -625,12 +625,18 @@ _fzf-version-ge() {
         ""|.*|*.|*..*|*[!0-9.]*) return 1 ;;
     esac
 
-    local have_parts need_parts i have_part need_part
-    IFS=. read -r -a have_parts <<< "${have}"
-    IFS=. read -r -a need_parts <<< "${need}"
-    for i in 0 1 2; do
-        have_part="${have_parts[i]:-0}"
-        need_part="${need_parts[i]:-0}"
+    # Peel one segment per pass with parameter expansion rather than
+    # splitting into an array: bash and zsh disagree on `read -a` and on
+    # array indexing, and this must behave the same in both.
+    local have_rest="${have}" need_rest="${need}" have_part need_part pass
+    # shellcheck disable=SC2034 # pass only counts the three segments
+    for pass in 1 2 3; do
+        have_part="${have_rest%%.*}"
+        need_part="${need_rest%%.*}"
+        if [[ "${have_rest}" == *.* ]]; then have_rest="${have_rest#*.}"; else have_rest=""; fi
+        if [[ "${need_rest}" == *.* ]]; then need_rest="${need_rest#*.}"; else need_rest=""; fi
+        have_part="${have_part:-0}"
+        need_part="${need_part:-0}"
         # 10# keeps a segment such as 08 from being read as octal.
         if [[ "$((10#${have_part}))" -gt "$((10#${need_part}))" ]]; then
             return 0
