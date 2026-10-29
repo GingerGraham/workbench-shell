@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-10-29
+
 ### Fixed
 
 - **fzf shell integration no longer fails silently on fzf older than 0.48.0.**
