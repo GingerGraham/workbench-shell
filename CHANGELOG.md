@@ -4,6 +4,19 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`wb tools install zsh-default-shell` checks the login shell, not
+  `$SHELL`.** `${SHELL}` keeps its old value until the next desktop login,
+  so after a successful `chsh` the tool read as not installed and
+  re-running the install ran `chsh` again, with another password prompt.
+  Both `install-zsh-default-shell` and `installed-zsh-default-shell` now
+  read the login shell the system records (`getent passwd` on Linux,
+  `dscl` on macOS), and `/bin/zsh` and `/usr/bin/zsh` both count. A failed
+  `chsh` is now reported as a failure, and the message says the change
+  applies at your next desktop login, not in a new terminal (workbench-core
+  D107).
+
 ## [0.8.4] - 2026-10-29
 
 ### Fixed
