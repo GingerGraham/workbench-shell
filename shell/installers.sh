@@ -265,17 +265,51 @@ installed-zsh() {
     command -v zsh &>/dev/null
 }
 
+# _zsh_login_shell
+# The account's login shell as the system records it — what chsh changes.
+# Not ${SHELL}: that is set when the desktop session starts and keeps the
+# old value until the next login, so checking it made a completed chsh look
+# undone and re-ran chsh (workbench-core D107). Same lookup as core's
+# _wb_login_shell, kept here so this module needs no newer Core API.
+_zsh_login_shell() {
+    local user login_shell=""
+    user="$(id -un)" || return 1
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        login_shell="$(dscl . -read "/Users/${user}" UserShell 2>/dev/null | awk '{ print $2 }')"
+    elif command -v getent &>/dev/null; then
+        login_shell="$(getent passwd "${user}" 2>/dev/null | cut -d: -f7)"
+    else
+        login_shell="$(awk -F: -v u="${user}" '$1 == u { print $7 }' /etc/passwd 2>/dev/null)"
+    fi
+    [[ -n "${login_shell}" ]] || return 1
+    printf '%s\n' "${login_shell}"
+}
+
+# _zsh_is_login_shell
+# True when the account's login shell is a zsh. Compared by basename:
+# merged-/usr systems list both /bin/zsh and /usr/bin/zsh, and chsh may
+# have recorded either.
+_zsh_is_login_shell() {
+    local login_shell
+    login_shell="$(_zsh_login_shell)" || return 1
+    [[ "${login_shell##*/}" == "zsh" ]]
+}
+
 install-zsh-default-shell() {
     if ! command -v zsh &>/dev/null; then
         log_error "zsh is not installed — run 'wb tools install zsh' first"
         return 1
     fi
 
-    local zsh_path; zsh_path="$(command -v zsh)"
-    if [[ "${SHELL}" == "${zsh_path}" ]]; then
-        log_info "zsh is already your default shell"
+    if _zsh_is_login_shell; then
+        log_info "zsh is already your login shell"
+        if [[ "${SHELL##*/}" != "zsh" ]]; then
+            log_info "This session started before the change — log out of your desktop session and back in to start using it."
+        fi
         return 0
     fi
+
+    local zsh_path; zsh_path="$(command -v zsh)"
 
     # Ensure zsh is in /etc/shells (required for chsh)
     if ! grep -qxF "${zsh_path}" /etc/shells 2>/dev/null; then
@@ -284,18 +318,21 @@ install-zsh-default-shell() {
         echo "${zsh_path}" | ${elevation_cmd} tee -a /etc/shells >/dev/null
     fi
 
-    log_info "Changing default shell to ${zsh_path}..."
-    chsh -s "${zsh_path}"
-    log_info "Default shell changed. Log out and back in (or start a new session) to apply."
+    log_info "Changing your login shell to ${zsh_path}..."
+    if ! chsh -s "${zsh_path}"; then
+        log_error "chsh failed — your login shell is unchanged"
+        return 1
+    fi
+    log_info "Login shell changed to ${zsh_path}. Log out of your desktop session and back in to start using it — closing and reopening a terminal isn't enough."
 }
 
 # Not "is zsh installed" — install-zsh-default-shell is a system-config
 # action (chsh), not a package install. Mirrors its own idempotency check:
-# is zsh both present AND the account's current default shell.
+# is zsh both present AND the account's login shell (as recorded by the
+# system, not ${SHELL} — workbench-core D107).
 installed-zsh-default-shell() {
-    local zsh_path
-    zsh_path="$(command -v zsh)" || return 1
-    [[ "${SHELL}" == "${zsh_path}" ]]
+    command -v zsh &>/dev/null || return 1
+    _zsh_is_login_shell
 }
 
 # ── zsh plugin install ────────────────────────────────────────────────────────
