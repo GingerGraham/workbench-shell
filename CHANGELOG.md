@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-10-30
+
 ### Fixed
 
 - **`wb tools install zsh-default-shell` checks the login shell, not
