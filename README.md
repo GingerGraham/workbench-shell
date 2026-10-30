@@ -52,7 +52,7 @@ wb install --bundle workstation
 | `starship` | starship's own install script (`starship.rs/install.sh`), **run unverified**, into `~/.local/bin`. | Homebrew |
 | `oh-my-zsh` | oh-my-zsh's own install script (`tools/install.sh` from its `master` branch), **run unverified**, unattended and without touching `~/.zshrc`. Updates with oh-my-zsh's own `tools/upgrade.sh`, which pulls `master`. | Same |
 | `zsh` | Distro package (dnf, apt, zypper, pacman). | Homebrew |
-| `zsh-default-shell` | Nothing downloaded: adds zsh to `/etc/shells` if needed, then `chsh`. | Same |
+| `zsh-default-shell` | Nothing downloaded: adds zsh to `/etc/shells` if needed, then `chsh`. Takes effect at your next desktop login, not in a new terminal. | Same |
 | `zsh-plugins` | Distro packages; where there are none, a `git clone` of each `zsh-users` repository's default branch over HTTPS, **unverified**. | Homebrew |
 | `direnv` | Distro package; on other distros, direnv's own install script (`direnv.net/install.sh`), **run unverified**. | Homebrew |
 | `fzf` | Distro package; on other distros, the release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). Shell integration needs fzf 0.48.0+; `wb tools upgrade fzf` installs a current one where the distro package is older. | Homebrew |
