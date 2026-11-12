@@ -5,6 +5,11 @@
 # runs unchanged; with VISUAL already set upstream (this module's own
 # overrides.sh, or workbench-core's settings.sh), that value wins outright
 # and the election never runs, GUI or not.
+#
+# D110: an EDITOR that was already set (and a VISUAL that was not) makes
+# VISUAL follow EDITOR, so git, crontab and TUIs open the editor the host
+# chose. The cases at the end cover that and the plain host without it.
+# shellcheck disable=SC2015  # '[[ cond ]] && ok || fail' is this suite's assertion idiom
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,6 +50,9 @@ run_editors() {
         WORKBENCH_OS="Linux"
         DISPLAY=""
         WAYLAND_DISPLAY=""
+        # The cases above are about a host with no EDITOR of its own, so a
+        # caller's EDITOR must not leak in.
+        unset EDITOR VISUAL
         [[ -n "${display}" ]] && DISPLAY=":0"
         [[ -n "${preset}" ]] && VISUAL="${preset}"
         # shellcheck disable=SC1091
@@ -107,6 +115,69 @@ result="$(run_editors "${WORK}/bin-empty" "code --wait" "" | tail -1)"
 [[ "${result}" == "code --wait" ]] \
     && ok "preset VISUAL wins even outside a GUI session" \
     || fail "preset VISUAL, no GUI: expected 'code --wait', got '${result}'"
+
+# ── D110: VISUAL follows an EDITOR that was set before workbench. ───────────
+# run_editors_ex <bindir> <editor> <visual> <display> <passes>
+# Sources editors.sh <passes> times in one shell (a second pass is a reload)
+# and prints "VISUAL=<..>|EDITOR=<..>" after the last.
+run_editors_ex() {
+    local bindir="$1" editor="$2" visual="$3" display="$4" passes="$5" n
+    (
+        PATH="${bindir}:/usr/bin:/bin"
+        WORKBENCH_OS="Linux"
+        DISPLAY=""
+        WAYLAND_DISPLAY=""
+        unset EDITOR VISUAL
+        [[ -n "${display}" ]] && DISPLAY=":0"
+        [[ -n "${editor}" ]] && EDITOR="${editor}"
+        [[ -n "${visual}" ]] && VISUAL="${visual}"
+        for ((n = 0; n < passes; n++)); do
+            # shellcheck disable=SC1091
+            source "${REPO_ROOT}/shell/editors.sh"
+        done
+        echo "VISUAL=${VISUAL}|EDITOR=${EDITOR}"
+    )
+}
+
+# 8. EDITOR set, VISUAL not: VISUAL follows it, even where the election
+#    would have picked code-insiders. A value with arguments stays whole.
+result="$(run_editors_ex "${WORK}/bin-code" "fake-editor --inline" "" "yes" 1 | tail -1)"
+[[ "${result}" == "VISUAL=fake-editor --inline|EDITOR=fake-editor --inline" ]] \
+    && ok "EDITOR set, VISUAL unset: VISUAL follows EDITOR (arguments kept), not the elected editor" \
+    || fail "EDITOR set, VISUAL unset: got '${result}'"
+
+# 9. Both set: neither changes.
+result="$(run_editors_ex "${WORK}/bin-code" "foo" "bar" "yes" 1 | tail -1)"
+[[ "${result}" == "VISUAL=bar|EDITOR=foo" ]] \
+    && ok "EDITOR and VISUAL both set: both unchanged" \
+    || fail "EDITOR and VISUAL both set: got '${result}'"
+
+# 10. The plain host: neither set. The election result is unchanged and
+#     EDITOR gets workbench's default.
+result="$(run_editors_ex "${WORK}/bin-code" "" "" "yes" 1 | tail -1)"
+[[ "${result}" == "VISUAL=code-insiders --wait|EDITOR=vim" ]] \
+    && ok "neither set: existing election runs unchanged (GUI, code-insiders)" \
+    || fail "neither set: got '${result}'"
+result="$(run_editors_ex "${WORK}/bin-empty" "" "" "" 1 | tail -1)"
+[[ "${result}" == "VISUAL=vim|EDITOR=vim" ]] \
+    && ok "neither set, nothing installed: vim and vim, as before" \
+    || fail "neither set, nothing installed: got '${result}'"
+
+# 11. VISUAL only: EDITOR still gets the default and VISUAL is untouched.
+result="$(run_editors_ex "${WORK}/bin-code" "" "bar" "yes" 1 | tail -1)"
+[[ "${result}" == "VISUAL=bar|EDITOR=vim" ]] \
+    && ok "VISUAL set, EDITOR unset: VISUAL kept, EDITOR defaults to vim" \
+    || fail "VISUAL set, EDITOR unset: got '${result}'"
+
+# 12. Reload: a second pass changes nothing, in both starting states.
+result="$(run_editors_ex "${WORK}/bin-code" "fake-editor --inline" "" "yes" 2 | tail -1)"
+[[ "${result}" == "VISUAL=fake-editor --inline|EDITOR=fake-editor --inline" ]] \
+    && ok "reload with a preset EDITOR: no change on the second pass" \
+    || fail "reload with a preset EDITOR: got '${result}'"
+result="$(run_editors_ex "${WORK}/bin-code" "" "" "yes" 2 | tail -1)"
+[[ "${result}" == "VISUAL=code-insiders --wait|EDITOR=vim" ]] \
+    && ok "reload on a plain host: no change on the second pass" \
+    || fail "reload on a plain host: got '${result}'"
 
 echo
 if [[ "${FAILED}" -eq 0 ]]; then

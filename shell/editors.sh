@@ -5,6 +5,12 @@
 # workbench-precursor's env/10-editors.sh — WORKBENCH_OS (Core API) replaces
 # DOTFILES_OS.
 
+# D110: remember whether EDITOR was already set before this file gives it a
+# default. A host that sets only EDITOR (a distribution's profile, say)
+# means "this is my editor"; electing a different VISUAL below would make
+# git, crontab and most TUIs open something else.
+_wb_editor_preset="${EDITOR:-}"
+
 # Respect a VISUAL already set upstream (this module's own overrides.sh,
 # or workbench-core's settings.sh — both source earlier than tier: env)
 # before running the election below. VISUAL already has a natural
@@ -15,7 +21,10 @@
 # isn't GUI-specific, so it's checked regardless of DISPLAY/WAYLAND_DISPLAY
 # — it's the fallback for "no GUI editor won, but something better than
 # bare vim is installed".
-if [[ -z "${VISUAL:-}" ]]; then
+if [[ -z "${VISUAL:-}" && -n "${_wb_editor_preset}" ]]; then
+    # EDITOR was set before workbench and VISUAL was not: VISUAL follows it.
+    VISUAL="${_wb_editor_preset}"
+elif [[ -z "${VISUAL:-}" ]]; then
     _gui_available=false
     [[ -n "${DISPLAY}" || -n "${WAYLAND_DISPLAY}" || "${WORKBENCH_OS}" == "Mac" ]] && _gui_available=true
 
@@ -33,6 +42,7 @@ fi
 export VISUAL
 
 export EDITOR="${EDITOR:-vim}"
+unset _wb_editor_preset
 
 # Make less friendlier for non-text input files — unless the user already
 # chose their own less options.
