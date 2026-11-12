@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-11-12
+
 ### Changed
 
 - **The tmux plugins are optional, and tmux-continuum's boot autostart is
