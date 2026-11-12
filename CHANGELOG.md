@@ -4,6 +4,27 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Workbench no longer overrides a shell setup that was there first
+  (workbench-core D110).**
+  - `VISUAL` follows an `EDITOR` that was set before workbench, so git,
+    crontab and TUIs open the editor the host chose.
+  - Aliases are defined only when the name is free. A host's own `lsa`, or
+    any other alias or function of the same name, is left alone; workbench's
+    own are refreshed on reload. `lsa` and `lsr` now call `command ls`, with
+    `--color=auto` where `ls` is GNU, so a host `ls` alias (eza, say) cannot
+    change them. `tmux-reload` no longer removes a host's alias of that name.
+  - The `FZF_*` defaults apply only to variables that are empty. With none of
+    your own set, fzf gets the same defaults as before, and they also apply
+    to any fzf alias you have.
+  - starship is not initialised a second time when your profile already did
+    it, and a reload keeps `STARSHIP_SESSION_KEY`.
+  - `install-neovim` does not offer to remove the packaged Neovim when other
+    packages depend on it.
+  - Calls to `cd`, `ls`, `find`, `cat` and `mv` in sourced files are
+    protected from host aliases (`builtin cd`, `command …`).
+
 ## [0.8.5] - 2026-10-30
 
 ### Fixed

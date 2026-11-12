@@ -79,9 +79,9 @@ _shell_chpwd_list() {
     (( ZSH_SUBSHELL == 0 )) || return 0
     [[ "$PWD" != "$HOME" ]] || return 0
     if [[ "${WORKBENCH_OS:-}" == "Mac" ]]; then
-        ls -AlhG
+        command ls -AlhG
     else
-        ls -Alh --color=auto
+        command ls -Alh --color=auto
     fi
     return 0
 }

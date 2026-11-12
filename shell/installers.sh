@@ -797,7 +797,7 @@ _neovim_cleanup_wrapper_script() {
 
     log_info "Found an existing non-symlink file at ${nvim_bin}"
     local backup="${nvim_bin}.pre-workbench.bak"
-    mv "${nvim_bin}" "${backup}"
+    command mv "${nvim_bin}" "${backup}"
     log_info "Backed up to ${backup}"
 }
 

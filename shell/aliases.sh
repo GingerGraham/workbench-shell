@@ -335,7 +335,7 @@ fi
 get-python-versions() {
     log_info "Python versions found:"
     local version
-    find /usr/bin /usr/local/bin -maxdepth 1 -type f -name 'python3*' ! -name '*-config' 2>/dev/null \
+    command find /usr/bin /usr/local/bin -maxdepth 1 -type f -name 'python3*' ! -name '*-config' 2>/dev/null \
         | sort \
         | while IFS= read -r version; do
             echo "$(basename "${version}"): $("${version}" --version 2>&1)"

@@ -68,7 +68,7 @@ direnv-init-project() {
                 return 1
             fi
 
-            cat > "${local_envrc}" <<'EOF'
+            command cat > "${local_envrc}" <<'EOF'
 # Local overrides for this project's direnv environment — never touched by
 # workbench. Loaded by the generated .envrc via source_env_if_exists.
 # See: https://direnv.net/man/direnv-stdlib.1.html
@@ -93,7 +93,7 @@ EOF
         return 1
     fi
 
-    cat > "${envrc}" <<'EOF'
+    command cat > "${envrc}" <<'EOF'
 # direnv environment for this project.
 # See: https://direnv.net/man/direnv-stdlib.1.html
 
