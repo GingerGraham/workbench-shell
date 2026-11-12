@@ -4,6 +4,21 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **The tmux plugins are optional, and tmux-continuum's boot autostart is
+  off.** The block workbench adds to your tmux config used to declare the
+  plugins and run TPM from the top of your file, before your own lines. TPM
+  reads the plugin list when it runs, so plugins you declared yourself could
+  be missed, and the first start cloned TPM and turned on a boot-time
+  autostart for tmux. The block now holds plain settings and the plugin
+  option defaults only. The plugins, the TPM bootstrap and TPM's `run` line
+  are in a new `files/tmux-plugins.conf` that you opt into by sourcing it as
+  the last line of your own tmux config; the README has the line.
+  **If you used the plugins, add that line after updating or your tmux loses
+  the theme and plugins.** `@continuum-boot` is `'off'` by default. Workbench
+  removes nothing that is already installed (workbench-core D110).
+
 ### Fixed
 
 - **Workbench no longer overrides a shell setup that was there first

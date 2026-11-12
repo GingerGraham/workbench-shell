@@ -32,7 +32,8 @@ wb install --bundle workstation
   (`shell/editors.sh`).
 - tmux and vim defaults, as a workbench block at the top of your own
   tmux config and vimrc — anything you set in your file wins
-  (workbench-core D82).
+  (workbench-core D82). The tmux plugins (TPM, the Dracula theme and
+  others) are optional; see [tmux plugins](#tmux-plugins-optional).
 - `starship.toml` and `direnv.toml` — kept current until you edit them,
   never touched once you have (workbench-core D81).
 - Installers for `oh-my-posh`, `starship`, `oh-my-zsh`, `zsh`,
@@ -66,15 +67,10 @@ decision (2026-10: accept and document), not an oversight. If you'd
 rather not run them, install those tools from your package manager or
 Homebrew instead.
 
-**tmux plugins.** `files/tmux.conf` (the block at the top of your tmux
-config) uses TPM. On the first tmux start without `~/.tmux/plugins/tpm`,
-tmux runs `git clone https://github.com/tmux-plugins/tpm` and installs the
-listed plugins, unverified, from their default branches. It also sets
-`@continuum-boot 'on'`, which makes tmux-continuum install a boot-time
-autostart for tmux on that first start. If you don't want the autostart,
-set `set -g @continuum-boot 'off'` in your own tmux config, below the
-block — your settings win. To skip the whole block (and TPM with it), see
-[tmux and vim](#tmux-and-vim-a-block-in-your-own-file).
+**tmux plugins.** The block at the top of your tmux config
+(`files/tmux.conf`) holds plain settings and the default values of the
+plugin options. It declares no plugins and starts nothing. The plugins are
+optional and are described under [tmux plugins](#tmux-plugins-optional).
 
 ## Prompt engine election
 
@@ -162,8 +158,8 @@ set -g mouse off        # yours: wins, because tmux keeps the last value
   `~/.vimrc`. Never a second file beside yours.
 - **Your settings win.** Everything outside the block is yours and is
   never changed. Put your settings below it.
-- **TPM** finds the plugins in the module's file and any `@plugin` lines
-  you add to yours.
+- **Plugins and TPM** are not in the block; see
+  [tmux plugins](#tmux-plugins-optional).
 - **Don't want it:** `wb files policy shell tmux.conf skip` (or `vimrc`)
   removes the block; `wb add shell --skip-layer tmux.conf` never adds it.
 - **Want only workbench's:** `wb files use shell tmux.conf` backs your file
@@ -171,6 +167,35 @@ set -g mouse off        # yours: wins, because tmux keeps the last value
   yours back.
 
 `wb files status shell` lists both under "Layers".
+
+### tmux plugins (optional)
+
+`files/tmux-plugins.conf` declares the plugins this module recommends
+(tmux-sensible, tmux-window-name, Dracula, resurrect, continuum, sidebar and
+better-mouse-mode) and loads them with TPM. It does nothing unless you source
+it. Add this as the **last line** of your own tmux config:
+
+```
+source-file -q ~/.local/share/workbench/modules/shell/current/files/tmux-plugins.conf
+```
+
+(If `XDG_DATA_HOME` is set, the path starts there.) It has to be last because
+TPM reads the plugin list, and the plugin options set before it, when it
+runs. Put your own `set -g @plugin '…'` lines and any plugin options you want
+to change above that line.
+
+On the first tmux start without `~/.tmux/plugins/tpm`, tmux runs
+`git clone https://github.com/tmux-plugins/tpm` and installs the plugins,
+unverified, from their default branches.
+
+`@continuum-boot` is `'off'`, so tmux-continuum does not install a boot-time
+autostart. To turn it on, set `set -g @continuum-boot 'on'` in your own tmux
+config, above the `source-file` line.
+
+**If you used the plugins before they became optional.** Your tmux loses the
+theme and plugins until you add the line above. Workbench removes nothing:
+TPM and the plugins stay in `~/.tmux/plugins`, and it does not touch an
+autostart that tmux-continuum installed earlier.
 
 ### Upgrading from 0.7.x
 
