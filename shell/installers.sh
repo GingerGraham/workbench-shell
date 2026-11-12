@@ -940,7 +940,34 @@ _neovim_prune_old_installs() {
     if [[ -n "${ZSH_VERSION:-}" ]]; then unsetopt nullglob; else shopt -u nullglob; fi
 }
 
+# _neovim_foreign_on_path
+# True when the nvim that would run (the first on PATH) is not one this
+# installer put there. Ours is ~/.local/bin/nvim, a symlink into
+# ~/.local/opt/nvim-<tag>. A Neovim from the package manager, mise, Homebrew
+# or anything else is the host's (workbench-core D110).
+_neovim_foreign_on_path() {
+    local found
+    found="$(command -v nvim 2>/dev/null)" || return 1
+    [[ -n "${found}" ]] || return 1
+    if [[ "${found}" == "${HOME}/.local/bin/nvim" && -L "${found}" ]]; then
+        case "$(readlink "${found}")" in
+            "${HOME}/.local/opt/nvim-"*) return 1 ;;
+        esac
+    fi
+    return 0
+}
+
 install-neovim() {
+    # D110: workbench changes only state it created. A Neovim that is already
+    # on PATH and that this function did not install is left alone: a second
+    # copy in ~/.local/bin would either shadow it or, where ~/.local/bin comes
+    # later on PATH, be installed and never used. The same function still
+    # installs and upgrades its own copy.
+    if _neovim_foreign_on_path; then
+        log_info "Neovim is already installed ($(command -v nvim)) — not installing the upstream release alongside it. Remove that copy first if you want workbench's."
+        return 0
+    fi
+
     log_info "Installing or updating Neovim..."
     command -v curl &>/dev/null || { log_error "curl is required"; return 1; }
     command -v tar  &>/dev/null || { log_error "tar is required";  return 1; }

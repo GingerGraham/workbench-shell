@@ -57,7 +57,7 @@ wb install --bundle workstation
 | `zsh-plugins` | Distro packages; where there are none, a `git clone` of each `zsh-users` repository's default branch over HTTPS, **unverified**. | Homebrew |
 | `direnv` | Distro package; on other distros, direnv's own install script (`direnv.net/install.sh`), **run unverified**. | Homebrew |
 | `fzf` | Distro package; on other distros, the release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). Shell integration needs fzf 0.48.0+; `wb tools upgrade fzf` installs a current one where the distro package is older. | Homebrew |
-| `neovim` | The release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). | Same |
+| `neovim` | The release tarball, checked against the SHA-256 GitHub publishes for it (no published SHA-256, no install). Skipped when a Neovim you installed some other way is already on `PATH`. | Same |
 
 The four vendor install scripts (oh-my-posh, starship, oh-my-zsh and
 direnv's) are downloaded to a file and run only if the download

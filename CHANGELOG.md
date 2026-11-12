@@ -35,8 +35,11 @@ All notable changes to `workbench-shell` are documented here.
     to any fzf alias you have.
   - starship is not initialised a second time when your profile already did
     it, and a reload keeps `STARSHIP_SESSION_KEY`.
-  - `install-neovim` does not offer to remove the packaged Neovim when other
-    packages depend on it.
+  - `install-neovim` does nothing when a Neovim is already on `PATH` that it
+    did not install itself (a package, mise, Homebrew), instead of adding a
+    second copy that shadows it or is never used. Its own install still
+    upgrades. It also does not offer to remove a packaged Neovim that other
+    packages depend on.
   - Calls to `cd`, `ls`, `find`, `cat` and `mv` in sourced files are
     protected from host aliases (`builtin cd`, `command …`).
 
