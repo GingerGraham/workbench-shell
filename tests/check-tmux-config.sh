@@ -74,7 +74,10 @@ else
     WORK="$(mktemp -d "${TMPDIR:-/tmp}/wb-tmux-config.XXXXXX")"
     trap 'rm -rf "${WORK}"' EXIT
     mkdir -p "${WORK}/home"
-    SOCK="wb-test-$$"
+    # One socket per server. Starting a second server on the socket a first
+    # one has just been killed on can fail with "server exited unexpectedly"
+    # while the old one is still shutting down.
+    SOCK="wb-test-$$-a"
     run_tmux() { HOME="${WORK}/home" TMUX_TMPDIR="${WORK}" TERM=xterm tmux -L "${SOCK}" "$@"; }
 
     err="$(run_tmux -f "${LAYER}" new-session -d -s t 'sleep 30' 2>&1)"
@@ -92,6 +95,7 @@ else
     run_tmux kill-server 2>/dev/null
 
     # The plugin declarations parse too, without running TPM or cloning.
+    SOCK="wb-test-$$-b"
     sed -e '/^if "test/,$d' "${PLUGINS}" > "${WORK}/declarations.conf"
     err="$(run_tmux -f "${WORK}/declarations.conf" new-session -d -s t 'sleep 30' 2>&1)"
     [[ -z "${err}" ]] \
