@@ -72,7 +72,7 @@ omp-themes() {
         log_error "omp-themes: OMP_THEME_DIR is not set"
         return 1
     fi
-    find "${OMP_THEME_DIR}" -maxdepth 1 -type f -name "*.omp.json" | sort | while read -r theme_file; do
+    command find "${OMP_THEME_DIR}" -maxdepth 1 -type f -name "*.omp.json" | sort | while read -r theme_file; do
         local theme_name
         theme_name="$(basename "${theme_file}" .omp.json)"
         echo ""
@@ -151,7 +151,7 @@ set-omp-theme-permanent() {
     if grep -q '^export OMP_THEME=' "${overrides_file}" 2>/dev/null; then
         local tmp; tmp="$(mktemp)"
         sed "s/^export OMP_THEME=.*/export OMP_THEME=\"${1}\"/" "${overrides_file}" > "${tmp}" \
-            && mv "${tmp}" "${overrides_file}"
+            && command mv "${tmp}" "${overrides_file}"
     else
         printf '\nexport OMP_THEME="%s"\n' "${1}" >> "${overrides_file}"
     fi

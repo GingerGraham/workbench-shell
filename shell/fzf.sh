@@ -28,21 +28,38 @@ elif [[ "${WORKBENCH_SHELL}" == "zsh" || "${WORKBENCH_SHELL}" == "bash" ]]; then
     unset _wb_fzf_init
 fi
 
+# ── Defaults, not overrides (workbench-core D110) ─────────────────────────────
+# Each variable below is set only when it is empty or unset, so a host or a
+# user that already configured fzf keeps its settings. After the first pass
+# sets a default, a reload sees it set and leaves it, which is fine: it is the
+# same value. On a host with no FZF_* variables these apply as before, and
+# they also apply to any fzf alias the host has of its own.
+
 # ── Default display options ───────────────────────────────────────────────────
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+if [ -z "${FZF_DEFAULT_OPTS:-}" ]; then
+    export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+fi
 
 # ── Default command — prefer fd for speed and .gitignore awareness ────────────
 if command -v fd &>/dev/null; then
-    export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-    export FZF_CTRL_T_COMMAND="${FZF_DEFAULT_COMMAND}"
-    export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+    if [ -z "${FZF_DEFAULT_COMMAND:-}" ]; then
+        export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+    fi
+    if [ -z "${FZF_CTRL_T_COMMAND:-}" ]; then
+        export FZF_CTRL_T_COMMAND="${FZF_DEFAULT_COMMAND}"
+    fi
+    if [ -z "${FZF_ALT_C_COMMAND:-}" ]; then
+        export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+    fi
 fi
 
 # ── Preview — use bat/batcat for syntax-highlighted file previews ─────────────
-if command -v bat &>/dev/null; then
-    export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=header,grid --line-range :500 {}'"
-elif command -v batcat &>/dev/null; then
-    export FZF_CTRL_T_OPTS="--preview 'batcat --color=always --style=header,grid --line-range :500 {}'"
+if [ -z "${FZF_CTRL_T_OPTS:-}" ]; then
+    if command -v bat &>/dev/null; then
+        export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=header,grid --line-range :500 {}'"
+    elif command -v batcat &>/dev/null; then
+        export FZF_CTRL_T_OPTS="--preview 'batcat --color=always --style=header,grid --line-range :500 {}'"
+    fi
 fi
 
 log_debug "fzf: integration loaded (shell=${WORKBENCH_SHELL})"

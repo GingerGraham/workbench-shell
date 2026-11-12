@@ -9,7 +9,7 @@
 #
 # Uses whatever config is found at $STARSHIP_CONFIG or the XDG default
 # (~/.config/starship.toml) — including a pre-existing distro-provided
-# config (e.g. Omarchy). This module's own files/starship.toml is deployed
+# config (a distribution's own, say). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten once edited
 # (workbench-core D81's managed lifecycle).
 
@@ -44,7 +44,23 @@ fi
 
 case "${WORKBENCH_SHELL}" in
     bash|zsh)
-        eval "$(starship init "${WORKBENCH_SHELL}")"
+        # D110: a host whose profile already ran `starship init` has
+        # starship_precmd hooked in. Running it again would add a second hook
+        # and give the shell a new STARSHIP_SESSION_KEY. The prompt is still
+        # claimed below, so the fallback prompt does not override the host's.
+        if _wb_prompt_hook_registered starship_precmd; then
+            log_debug "starship: starship_precmd is already hooked in — not initialising again"
+        else
+            # `starship init` generates a fresh session key each time it runs.
+            # On a reload in the same shell the session is the same one, so
+            # the key it had is put back.
+            _wb_starship_session_key="${STARSHIP_SESSION_KEY:-}"
+            eval "$(starship init "${WORKBENCH_SHELL}")"
+            if [[ -n "${_wb_starship_session_key}" ]]; then
+                export STARSHIP_SESSION_KEY="${_wb_starship_session_key}"
+            fi
+            unset _wb_starship_session_key
+        fi
         ;;
     *)
         log_warn "starship: unsupported shell '${WORKBENCH_SHELL}' — skipping init"
@@ -54,4 +70,4 @@ esac
 
 export WORKBENCH_PROMPT_ENGINE="starship"
 export WORKBENCH_PROMPT_SET=true
-log_debug "starship: initialised (config: ${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/starship.toml})"
+log_debug "starship: prompt claimed (config: ${STARSHIP_CONFIG:-${XDG_CONFIG_HOME:-${HOME}/.config}/starship.toml})"

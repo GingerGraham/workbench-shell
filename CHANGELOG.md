@@ -4,6 +4,45 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **The tmux plugins are optional, and tmux-continuum's boot autostart is
+  off.** The block workbench adds to your tmux config used to declare the
+  plugins and run TPM from the top of your file, before your own lines. TPM
+  reads the plugin list when it runs, so plugins you declared yourself could
+  be missed, and the first start cloned TPM and turned on a boot-time
+  autostart for tmux. The block now holds plain settings and the plugin
+  option defaults only. The plugins, the TPM bootstrap and TPM's `run` line
+  are in a new `files/tmux-plugins.conf` that you opt into by sourcing it as
+  the last line of your own tmux config; the README has the line.
+  **If you used the plugins, add that line after updating or your tmux loses
+  the theme and plugins.** `@continuum-boot` is `'off'` by default. Workbench
+  removes nothing that is already installed (workbench-core D110).
+
+### Fixed
+
+- **Workbench no longer overrides a shell setup that was there first
+  (workbench-core D110).**
+  - `VISUAL` follows an `EDITOR` that was set before workbench, so git,
+    crontab and TUIs open the editor the host chose.
+  - Aliases are defined only when the name is free. A host's own `lsa`, or
+    any other alias or function of the same name, is left alone; workbench's
+    own are refreshed on reload. `lsa` and `lsr` now call `command ls`, with
+    `--color=auto` where `ls` is GNU, so a host `ls` alias (eza, say) cannot
+    change them. `tmux-reload` no longer removes a host's alias of that name.
+  - The `FZF_*` defaults apply only to variables that are empty. With none of
+    your own set, fzf gets the same defaults as before, and they also apply
+    to any fzf alias you have.
+  - starship is not initialised a second time when your profile already did
+    it, and a reload keeps `STARSHIP_SESSION_KEY`.
+  - `install-neovim` does nothing when a Neovim is already on `PATH` that it
+    did not install itself (a package, mise, Homebrew), instead of adding a
+    second copy that shadows it or is never used. Its own install still
+    upgrades. It also does not offer to remove a packaged Neovim that other
+    packages depend on.
+  - Calls to `cd`, `ls`, `find`, `cat` and `mv` in sourced files are
+    protected from host aliases (`builtin cd`, `command …`).
+
 ## [0.8.5] - 2026-10-30
 
 ### Fixed

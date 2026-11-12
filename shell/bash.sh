@@ -9,7 +9,8 @@
 
 # ── History ───────────────────────────────────────────────────────────────────
 # Append to the history file on exit rather than overwriting it.
-# HISTSIZE/HISTFILESIZE/HISTCONTROL are set by workbench-core's env tier.
+# This module does not set HISTSIZE, HISTFILESIZE or HISTCONTROL for bash:
+# they stay as the host or bash itself left them (workbench-core D110).
 shopt -s histappend
 
 # ── Window size ───────────────────────────────────────────────────────────────

@@ -797,7 +797,7 @@ _neovim_cleanup_wrapper_script() {
 
     log_info "Found an existing non-symlink file at ${nvim_bin}"
     local backup="${nvim_bin}.pre-workbench.bak"
-    mv "${nvim_bin}" "${backup}"
+    command mv "${nvim_bin}" "${backup}"
     log_info "Backed up to ${backup}"
 }
 
@@ -821,6 +821,54 @@ _neovim_cleanup_appimage_file() {
 # distro package, so the tarball binary wins regardless of whether the
 # packaged copy is removed — removal here is hygiene, not necessity. Never
 # removed without an explicit yes.
+# _neovim_package_dependents
+# Prints, space separated, the installed packages that need the packaged
+# Neovim. Nothing is printed when none do, or when this host's package
+# manager cannot be asked. D110: a package something else depends on is not
+# offered for removal.
+_neovim_package_dependents() {
+    local dependents=""
+    if [[ "${WORKBENCH_OS}" == "Mac" ]]; then
+        command -v brew &>/dev/null \
+            && dependents="$(brew uses --installed neovim 2>/dev/null | tr '\n' ' ')"
+    else
+        case "${WORKBENCH_DISTRO}" in
+            rhel|suse)
+                # rpm exits 0 and lists packages when something requires it,
+                # and exits 1 with "no package requires neovim" when not.
+                command -v rpm &>/dev/null \
+                    && dependents="$(rpm -q --whatrequires neovim 2>/dev/null | tr '\n' ' ')"
+                ;;
+            debian)
+                # Lines after the "Reverse Depends:" heading, "|" marking an
+                # alternative.
+                command -v apt-cache &>/dev/null \
+                    && dependents="$(apt-cache rdepends --installed neovim 2>/dev/null \
+                        | awk '/^Reverse Depends:/{f=1; next} f{gsub(/^[ |]+/, ""); if ($0 != "") print $0}' \
+                        | tr '\n' ' ')"
+                ;;
+            arch)
+                # "Required By : a b" (or "None"), which pacman wraps onto
+                # indented continuation lines.
+                command -v pacman &>/dev/null \
+                    && dependents="$(LC_ALL=C pacman -Qi neovim 2>/dev/null | awk '
+                        /^Required By/ { sub(/^Required By[ ]*:[ ]*/, ""); out = $0; f = 1; next }
+                        f && /^[ ]/    { out = out " " $0; next }
+                        f              { f = 0 }
+                        END            { print out }')"
+                ;;
+        esac
+    fi
+    # Squeeze runs of spaces (pacman pads wrapped lines) and trim the ends.
+    dependents="$(printf '%s' "${dependents}" | tr -s '[:space:]' ' ')"
+    dependents="${dependents#"${dependents%%[![:space:]]*}"}"
+    dependents="${dependents%"${dependents##*[![:space:]]}"}"
+    case "${dependents}" in
+        ""|None|"no package requires neovim"*) return 0 ;;
+    esac
+    printf '%s\n' "${dependents}"
+}
+
 _neovim_cleanup_package_install() {
     local packaged=""
     if [[ "${WORKBENCH_OS}" == "Mac" ]]; then
@@ -847,6 +895,13 @@ _neovim_cleanup_package_install() {
     log_warn "A package-manager-installed Neovim was found: ${packaged}"
     # shellcheck disable=SC2088
     log_warn "~/.local/bin is ahead of it on PATH, so the tarball install takes precedence regardless."
+
+    local dependents
+    dependents="$(_neovim_package_dependents)"
+    if [[ -n "${dependents}" ]]; then
+        log_warn "Not offering to remove the packaged Neovim: ${dependents} depend on it."
+        return 0
+    fi
 
     if [[ ! -e /dev/tty ]]; then
         log_warn "Non-interactive shell — leaving the packaged Neovim in place."
@@ -885,7 +940,34 @@ _neovim_prune_old_installs() {
     if [[ -n "${ZSH_VERSION:-}" ]]; then unsetopt nullglob; else shopt -u nullglob; fi
 }
 
+# _neovim_foreign_on_path
+# True when the nvim that would run (the first on PATH) is not one this
+# installer put there. Ours is ~/.local/bin/nvim, a symlink into
+# ~/.local/opt/nvim-<tag>. A Neovim from the package manager, mise, Homebrew
+# or anything else is the host's (workbench-core D110).
+_neovim_foreign_on_path() {
+    local found
+    found="$(command -v nvim 2>/dev/null)" || return 1
+    [[ -n "${found}" ]] || return 1
+    if [[ "${found}" == "${HOME}/.local/bin/nvim" && -L "${found}" ]]; then
+        case "$(readlink "${found}")" in
+            "${HOME}/.local/opt/nvim-"*) return 1 ;;
+        esac
+    fi
+    return 0
+}
+
 install-neovim() {
+    # D110: workbench changes only state it created. A Neovim that is already
+    # on PATH and that this function did not install is left alone: a second
+    # copy in ~/.local/bin would either shadow it or, where ~/.local/bin comes
+    # later on PATH, be installed and never used. The same function still
+    # installs and upgrades its own copy.
+    if _neovim_foreign_on_path; then
+        log_info "Neovim is already installed ($(command -v nvim)) — not installing the upstream release alongside it. Remove that copy first if you want workbench's."
+        return 0
+    fi
+
     log_info "Installing or updating Neovim..."
     command -v curl &>/dev/null || { log_error "curl is required"; return 1; }
     command -v tar  &>/dev/null || { log_error "tar is required";  return 1; }
