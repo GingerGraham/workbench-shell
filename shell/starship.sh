@@ -9,7 +9,7 @@
 #
 # Uses whatever config is found at $STARSHIP_CONFIG or the XDG default
 # (~/.config/starship.toml) — including a pre-existing distro-provided
-# config (e.g. Omarchy). This module's own files/starship.toml is deployed
+# config (a distribution's own, say). This module's own files/starship.toml is deployed
 # only if one isn't already present, and never overwritten once edited
 # (workbench-core D81's managed lifecycle).
 
