@@ -11,7 +11,7 @@
 # (contracts/core-api.md's prompt-ownership convention) so the loader's own
 # fallback PS1/PROMPT is skipped.
 
-# Availability (workbench-core docs/module-authoring.md): the functions
+# Availability (workbench-core docs/guide/module-authoring.md): the functions
 # below exist only once oh-my-posh has won the election. Declared before
 # the early returns, since listings read this file statically.
 _shell_omp_active() { command -v oh-my-posh &>/dev/null && [[ "${WORKBENCH_PROMPT_ENGINE:-}" == "omp" ]]; }
