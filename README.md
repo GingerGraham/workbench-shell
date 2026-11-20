@@ -101,6 +101,19 @@ specific engine regardless of what's installed or this priority order.
 If the named engine isn't actually installed, the override falls through
 to no prompt engine at all — never silently back to this election.
 
+`set-prompt-engine` makes that choice for you and keeps it across
+restarts and updates:
+
+```sh
+set-prompt-engine starship   # omp, starship or omz: force that engine
+set-prompt-engine none       # start no engine; you manage the prompt
+set-prompt-engine auto       # remove the preference; back to the election
+wb reload                    # or open a new shell, to switch the prompt
+```
+
+It warns if the engine you name isn't installed, since the prompt then has
+no engine until it is.
+
 `VISUAL` has its own priority order — `code-insiders > code > nvim >
 vim` (GUI-only for the first two; `nvim` and `vim` are checked
 regardless of `DISPLAY`/`WAYLAND_DISPLAY`) — set by `shell/editors.sh`.

@@ -40,14 +40,15 @@ _wb_availability_needs()   { :; }
 
 # in_sh <shell> <commands>
 # Aliases are not expanded in a non-interactive bash unless asked for, and
-# in both shells an alias only takes effect on the line after it is defined.
+# zsh parses a whole -c string before running any of it, so the commands run
+# through eval: they are parsed after aliases.sh has defined its aliases.
 in_sh() {
     local sh="$1" expand=""
     [[ "${sh}" == "bash" ]] && expand="shopt -s expand_aliases"
     HOME="${WORK}/home" PATH="/usr/bin:/bin" "${sh}" -c "${STUBS}
 ${expand}
 source '${REPO_ROOT}/shell/aliases.sh'
-$2" 2>&1
+eval \"\$1\"" _ "$2" 2>&1
 }
 
 # ── bash ────────────────────────────────────────────────────────────────────

@@ -17,6 +17,8 @@
 # named engine isn't actually installed, the override falls through to
 # no prompt engine at all — core's own bare PS1/PROMPT fallback, not
 # silently back to the election.
+# `set-prompt-engine starship` writes this line for you (`auto` removes it,
+# `none` starts no engine).
 # export WORKBENCH_OVERRIDE_PROMPT_ENGINE="starship"
 
 # oh-my-posh theme name (looked up in oh-my-posh's own theme cache dir —

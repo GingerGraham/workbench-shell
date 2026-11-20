@@ -11,6 +11,13 @@ All notable changes to `workbench-shell` are documented here.
   without a new shell and without losing the session's variables or history.
   `zshsource` exists only in zsh, `bashsource` only in bash. A name your own
   setup already defines is left alone.
+- **`set-prompt-engine` saves your prompt-engine choice.**
+  `set-prompt-engine starship` (or `omp`, `omz`) writes
+  `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to this module's overrides file, so the
+  choice survives restarts and updates. `none` starts no engine and `auto`
+  removes the preference, which returns to the election by what is
+  installed. It warns when the engine you name isn't installed. Run
+  `wb reload` or open a new shell to switch the prompt.
 
 ### Fixed
 
