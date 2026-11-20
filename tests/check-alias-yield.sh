@@ -126,7 +126,7 @@ tmux-reload')"
         if [[ "${out}" != "DEFINED" ]]; then
             # Shell-specific names are only defined in their own shell.
             case "${sh}:${name}" in
-                bash:zshconfig|bash:zshreload|bash:history|zsh:bashconfig|zsh:bashreload) ;;
+                bash:zshconfig|bash:zshreload|bash:zshsource|bash:history|zsh:bashconfig|zsh:bashreload|zsh:bashsource) ;;
                 *) missing="${missing} ${name}" ;;
             esac
         fi

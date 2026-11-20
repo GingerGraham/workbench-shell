@@ -4,6 +4,21 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`zshsource` and `bashsource` aliases.** Each runs `source` on your shell's
+  rc file (`~/.zshrc`, `~/.bashrc`) in the current shell, so edits apply
+  without a new shell and without losing the session's variables or history.
+  `zshsource` exists only in zsh, `bashsource` only in bash. A name your own
+  setup already defines is left alone.
+- **`set-prompt-engine` saves your prompt-engine choice.**
+  `set-prompt-engine starship` (or `omp`, `omz`) writes
+  `WORKBENCH_OVERRIDE_PROMPT_ENGINE` to this module's overrides file, so the
+  choice survives restarts and updates. `none` starts no engine and `auto`
+  removes the preference, which returns to the election by what is
+  installed. It warns when the engine you name isn't installed. Run
+  `wb reload` or open a new shell to switch the prompt.
+
 ### Changed
 
 - **Agent and contributor guidance covers the stale-base CHANGELOG trap
@@ -13,6 +28,17 @@ All notable changes to `workbench-shell` are documented here.
   push, that a release which landed on `main` since you branched hasn't
   left your `[Unreleased]` entry inside the released section, and to look
   at the Release run after merging.
+
+### Fixed
+
+- **`set-omp-theme-permanent` writes to this module's overrides file by the
+  name the module is registered under.** It always wrote
+  `overrides/shell.sh`, which is the right file only when the module is
+  registered as `shell`. The file is now named from the registration name,
+  the same name workbench-core deploys the overrides file under. The
+  lookup and the write are in a new `shell/preferences.sh`, which the next
+  preference setting can reuse. A value is written as typed, so `&` or a
+  backslash in it is no longer treated as `sed` replacement syntax.
 
 ## [0.8.6] - 2026-11-12
 

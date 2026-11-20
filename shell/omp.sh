@@ -111,13 +111,13 @@ set-omp-theme() {
 }
 
 # Permanently update OMP_THEME by exporting it into this module's own
-# overrides file, ~/.config/workbench/local/overrides/shell.sh
-# (workbench-core ARCHITECTURE.md §12 D48) — NOT by editing this file in
-# place. Unlike workbench-precursor (a single persistent repo clone), this
-# file lives inside workbench-core's immutable, per-sync snapshot
-# (ARCHITECTURE.md principle 6 / §12 D16) — editing it directly would be
-# silently discarded on the next sync, and would corrupt the sync
-# engine's manifest-hash tracking in the meantime.
+# overrides file (workbench-core ARCHITECTURE.md §12 D48; the file's name is
+# the name this module is registered under, see shell/preferences.sh) — NOT
+# by editing this file in place. Unlike workbench-precursor (a single
+# persistent repo clone), this file lives inside workbench-core's immutable,
+# per-sync snapshot (ARCHITECTURE.md principle 6 / §12 D16) — editing it
+# directly would be silently discarded on the next sync, and would corrupt
+# the sync engine's manifest-hash tracking in the meantime.
 set-omp-theme-permanent() {
     if [[ -z "${1}" ]]; then
         log_error "set-omp-theme-permanent: no theme name provided"
@@ -144,16 +144,10 @@ set-omp-theme-permanent() {
     OMP_THEME="${1}"
 
     # Persist: update-or-append an OMP_THEME export in this module's own
-    # overrides file (ARCHITECTURE.md §12 D48), not the shared settings.sh.
-    local overrides_file="${XDG_CONFIG_HOME:-${HOME}/.config}/workbench/local/overrides/shell.sh"
-    mkdir -p "$(dirname "${overrides_file}")"
-    touch "${overrides_file}"
-    if grep -q '^export OMP_THEME=' "${overrides_file}" 2>/dev/null; then
-        local tmp; tmp="$(mktemp)"
-        sed "s/^export OMP_THEME=.*/export OMP_THEME=\"${1}\"/" "${overrides_file}" > "${tmp}" \
-            && command mv "${tmp}" "${overrides_file}"
-    else
-        printf '\nexport OMP_THEME="%s"\n' "${1}" >> "${overrides_file}"
+    # overrides file, not the shared settings.sh.
+    if ! _shell_override_set OMP_THEME "${1}"; then
+        log_error "set-omp-theme-permanent: could not write $(_shell_overrides_file)"
+        return 1
     fi
-    log_info "oh-my-posh: theme '${1}' set permanently in ${overrides_file}"
+    log_info "oh-my-posh: theme '${1}' set permanently in $(_shell_overrides_file)"
 }
