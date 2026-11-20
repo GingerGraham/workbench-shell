@@ -19,6 +19,16 @@ All notable changes to `workbench-shell` are documented here.
   installed. It warns when the engine you name isn't installed. Run
   `wb reload` or open a new shell to switch the prompt.
 
+### Changed
+
+- **Agent and contributor guidance covers the stale-base CHANGELOG trap
+  (workbench-core D115).** `AGENTS.md`, `.github/copilot-instructions.md`,
+  `CONTRIBUTING.md`, the PR template and the conventional-commits skill
+  checklist now say to check, before opening a PR and before any later
+  push, that a release which landed on `main` since you branched hasn't
+  left your `[Unreleased]` entry inside the released section, and to look
+  at the Release run after merging.
+
 ### Fixed
 
 - **`set-omp-theme-permanent` writes to this module's overrides file by the

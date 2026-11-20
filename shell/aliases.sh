@@ -7,7 +7,7 @@
 # updating the get-installers reference to wb tools (§ below) — no
 # get-installers function exists in workbench-core's Core API.
 
-# Availability (workbench-core docs/module-authoring.md). The aliases below
+# Availability (workbench-core docs/guide/module-authoring.md). The aliases below
 # are defined only when their tool exists, but listings read this file
 # statically, so each block declares what it needs.
 _shell_have_route_tool() { command -v ip &>/dev/null || command -v netstat &>/dev/null; }

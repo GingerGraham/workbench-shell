@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tests/check-availability.sh — workbench-shell
 # Every public name in this module's registered shell files either always
-# exists, or declares what it needs (workbench-core docs/module-authoring.md,
+# exists, or declares what it needs (workbench-core docs/guide/module-authoring.md,
 # "Declaring function availability"): listings read the files statically,
 # so a name defined only when its tool exists must say so, or `wb
 # functions` shows it as available when it isn't — or under "module gave no

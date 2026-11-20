@@ -13,7 +13,7 @@
 # only if one isn't already present, and never overwritten once edited
 # (workbench-core D81's managed lifecycle).
 
-# Availability (workbench-core docs/module-authoring.md). Declared before
+# Availability (workbench-core docs/guide/module-authoring.md). Declared before
 # the early returns, since listings read this file statically.
 _wb_declare_availability starship edit-starship-config
 
