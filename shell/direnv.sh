@@ -10,7 +10,7 @@
 # files/direnv.toml (workbench.yml deploy[]), created once, never
 # overwritten — see this repo's README for what it sets.
 
-# Availability (workbench-core docs/module-authoring.md).
+# Availability (workbench-core docs/guide/module-authoring.md).
 _wb_declare_availability direnv edit-direnv-config direnv-init-project
 
 # ── Quieter output ────────────────────────────────────────────────────────
