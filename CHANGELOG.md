@@ -4,6 +4,14 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **`zshsource` and `bashsource` aliases.** Each runs `source` on your shell's
+  rc file (`~/.zshrc`, `~/.bashrc`) in the current shell, so edits apply
+  without a new shell and without losing the session's variables or history.
+  `zshsource` exists only in zsh, `bashsource` only in bash. A name your own
+  setup already defines is left alone.
+
 ## [0.8.6] - 2026-11-12
 
 ### Changed

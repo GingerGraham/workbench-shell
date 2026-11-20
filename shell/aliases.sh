@@ -20,8 +20,8 @@ _shell_have_get_functions() { command -v get-functions &>/dev/null; }
 _wb_alias_availability --needs "ip (iproute2) or netstat" _shell_have_route_tool routeprint printrt
 _wb_alias_availability --needs "bat (bat or batcat)"      _shell_have_bat cat
 _wb_alias_availability --needs "btop or htop"             _shell_have_top top
-_wb_alias_availability --needs "zsh (the current shell)"  _shell_in_zsh zshconfig zshreload history
-_wb_alias_availability --needs "bash (the current shell)" _shell_in_bash bashconfig bashreload
+_wb_alias_availability --needs "zsh (the current shell)"  _shell_in_zsh zshconfig zshreload zshsource history
+_wb_alias_availability --needs "bash (the current shell)" _shell_in_bash bashconfig bashreload bashsource
 _wb_alias_availability --needs "dig or curl"              _shell_have_ip_lookup get-public-ip
 _wb_alias_availability --needs "workbench-core's get-functions" _shell_have_get_functions aliases reset-shell rs
 _wb_declare_availability ssh-add       sshclear
@@ -313,6 +313,11 @@ if _shell_in_zsh; then
     if _shell_alias_free zshreload; then
         alias zshreload="exec zsh"
     fi
+    # Re-read ~/.zshrc in the current shell. zshreload starts a new zsh
+    # instead; this keeps the session's own variables and history.
+    if _shell_alias_free zshsource; then
+        alias zshsource='source "${HOME}/.zshrc"'
+    fi
     if _shell_alias_free history; then
         alias history="history 1"
     fi
@@ -324,6 +329,11 @@ if _shell_in_bash; then
     fi
     if _shell_alias_free bashreload; then
         alias bashreload="exec bash"
+    fi
+    # Re-read ~/.bashrc in the current shell. bashreload starts a new bash
+    # instead; this keeps the session's own variables and history.
+    if _shell_alias_free bashsource; then
+        alias bashsource='source "${HOME}/.bashrc"'
     fi
 fi
 
