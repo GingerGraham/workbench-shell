@@ -130,12 +130,14 @@ clone — that doesn't work here.
 
 Instead, this module ships `shell/overrides.sh`
 (`overrides_src`, workbench-core ARCHITECTURE.md §12 D48) — deployed once,
-to `~/.config/workbench/local/overrides/shell.sh`, and never touched
-again by the sync engine. Edit it directly for `WORKBENCH_OVERRIDE_PROMPT_ENGINE`,
+to `~/.config/workbench/local/overrides/shell.sh` (the file is named after
+the name the module is registered under — `shell` for `wb add shell`), and
+never touched again by the sync engine. Edit it directly for `WORKBENCH_OVERRIDE_PROMPT_ENGINE`,
 `OMP_THEME`, `ZSH_THEME`, oh-my-zsh's `plugins`, `VISUAL`/`EDITOR`, or
 anything else a `shell/*.sh` file here reads with a default.
 `set-omp-theme-permanent`
-writes into this same file for you, rather than you editing it by hand.
+writes into this same file for you, rather than you editing it by hand,
+whatever name the module is registered under.
 
 ### tmux and vim: a block in your own file
 

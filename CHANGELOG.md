@@ -12,6 +12,17 @@ All notable changes to `workbench-shell` are documented here.
   `zshsource` exists only in zsh, `bashsource` only in bash. A name your own
   setup already defines is left alone.
 
+### Fixed
+
+- **`set-omp-theme-permanent` writes to this module's overrides file by the
+  name the module is registered under.** It always wrote
+  `overrides/shell.sh`, which is the right file only when the module is
+  registered as `shell`. The file is now named from the registration name,
+  the same name workbench-core deploys the overrides file under. The
+  lookup and the write are in a new `shell/preferences.sh`, which the next
+  preference setting can reuse. A value is written as typed, so `&` or a
+  backslash in it is no longer treated as `sed` replacement syntax.
+
 ## [0.8.6] - 2026-11-12
 
 ### Changed

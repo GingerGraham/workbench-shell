@@ -45,6 +45,8 @@ register:
       tier: core
     - src: shell/bash.sh
       tier: core
+    - src: shell/preferences.sh
+      tier: core
     - src: shell/zsh.sh
       tier: core
     - src: shell/omp.sh
