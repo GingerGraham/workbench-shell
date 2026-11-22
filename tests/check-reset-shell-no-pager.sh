@@ -33,6 +33,10 @@ get-functions() { :; }
 _wb_alias_availability()   { :; }
 _wb_declare_availability() { :; }
 _wb_availability_needs()   { :; }
+# Aliases go through workbench_alias_define (Core API 1.10); this stand-in is
+# written to core's contract. Nothing here is in the way of an alias.
+# shellcheck source=tests/fixtures/workbench-alias-double.sh
+. "${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh"
 ZSH_VERSION=""
 # shellcheck disable=SC1091
 source "${REPO_ROOT}/shell/aliases.sh"

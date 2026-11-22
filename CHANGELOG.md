@@ -4,6 +4,20 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **The aliases go through workbench-core's `workbench_alias_define`, and
+  `tmux-reload` yields by hand.** The module's own yield helper
+  (`_shell_alias_free`) is gone; every alias now uses the core one, so a name
+  you already have as an alias or function is still kept, and now the first
+  interactive shell says so once and `wb status` lists it. An alias that
+  matches the one workbench would set is no longer treated as a clash. Same
+  names and values when nothing is in the way. `tmux-reload` is a function,
+  so it keeps its own check: it is defined only when no alias or function of
+  that name exists, or when it is the one this file defined earlier in the
+  shell, and the 0.7.x alias is still removed. Needs workbench-core 2.30.0 or
+  later (`core_api: ">=1.10 <2.0"`); `wb update core` first.
+
 ## [0.9.0] - 2026-11-20
 
 ### Added

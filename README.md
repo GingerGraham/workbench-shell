@@ -248,7 +248,9 @@ module's changes:
 - **Aliases**, sourced in every shell — among them `cat` → `bat`, `top` →
   `btop`/`htop`, `python` → `python3`, `pip` → `pip3`, `code` →
   `code-insiders`, where those tools are installed. See
-  `shell/aliases.sh`; an alias of your own defined later wins.
+  `shell/aliases.sh`; an alias of your own defined later wins, and an alias
+  or function of that name you already have is kept (`wb status` lists what
+  was left alone).
 - **Prompt election.** If oh-my-posh, starship or oh-my-zsh is installed,
   this module starts it (see below). It doesn't detect a prompt you set up
   some other way. If you manage your prompt yourself, set

@@ -59,6 +59,7 @@ run_profile() {
         printf '%s\n' \
             'log_warn() { :; }; log_debug() { :; }; log_info() { :; }; log_error() { :; }' \
             '_wb_declare_availability() { :; }; _wb_alias_availability() { :; }; _wb_availability_needs() { :; }' \
+            ". '${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh'" \
             '_wb_prompt_hook_registered() { [[ "${PROMPT_COMMAND[*]:-}" == *"$1"* ]]; }' \
             'WORKBENCH_SHELL=bash; WORKBENCH_OS=Linux; DISPLAY=""; WAYLAND_DISPLAY=""'
         for f in editors aliases fzf starship; do

@@ -40,6 +40,7 @@ in_shell() {
         _wb_alias_availability() { :; }
         _wb_declare_availability() { :; }
         _wb_availability_needs() { :; }
+        source '${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh'
         source '${REPO_ROOT}/shell/aliases.sh' || exit 9
         $2" 2>&1
 }
