@@ -60,10 +60,10 @@ if [[ -n "${MANIFEST}" ]]; then
     done < <(grep -E '^[[:space:]]*(-[[:space:]]*)?src:' "${MANIFEST}" | sed -E 's/^[[:space:]]*-?[[:space:]]*src:[[:space:]]*//')
 fi
 
-if [[ -n "${MANIFEST}" ]] && grep -q '^core_api: ">=1.8 <2.0"$' "${MANIFEST}"; then
-    ok "core_api requires 1.8 (core-defined getter, _wb_gh_release_asset_url)"
+if [[ -n "${MANIFEST}" ]] && grep -q '^core_api: ">=1.10 <2.0"$' "${MANIFEST}"; then
+    ok "core_api requires 1.10 (workbench_alias_define; 1.8 added the core-defined getter, _wb_gh_release_asset_url)"
 else
-    fail "core_api must be \">=1.8 <2.0\""
+    fail "core_api must be \">=1.10 <2.0\""
 fi
 
 # Core API 1.8 defines get-shell-functions from register.getters[] (workbench-core

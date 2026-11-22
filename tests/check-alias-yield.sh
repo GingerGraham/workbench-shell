@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# tests/check-alias-yield.sh — workbench-shell, workbench-core D110.
+# tests/check-alias-yield.sh — workbench-shell, workbench-core D110 and D124.
 #
-# shell/aliases.sh defines an alias only when the name is free: not an alias
-# or function the host already has. A name this file defined earlier in the
+# shell/aliases.sh defines an alias only when the name is free (through
+# workbench_alias_define, Core API 1.10): not an alias or function the host
+# already has. A name this file defined earlier in the
 # shell is redefined, so a reload refreshes it. lsa and lsr call `command ls`
 # so a host's own `ls` alias cannot change what they mean.
 #
@@ -10,8 +11,9 @@
 # definitions on lines of their own BEFORE aliases.sh is sourced: an alias is
 # expanded when a line is read, so a one-line `bash -c` string would not test
 # the right thing. bash and zsh both run every case; SKIP: only when a shell
-# is not installed. The Core API pieces aliases.sh calls are no-op stand-ins
-# (this suite runs without core). Plain bash, numbered OK:/FAIL: checks.
+# is not installed. The Core API pieces aliases.sh calls are stand-ins (this
+# suite runs without core); the alias helper is tests/fixtures/workbench-alias-double.sh,
+# written to the contract in workbench-core. Plain bash, numbered OK:/FAIL: checks.
 #
 # SC2015: '[[ cond ]] && ok || fail' is this suite's assertion idiom.
 # shellcheck disable=SC2015
@@ -46,7 +48,8 @@ run_case() {
             'log_error() { echo "ERROR: $*"; }' \
             '_wb_alias_availability() { :; }' \
             '_wb_declare_availability() { :; }' \
-            '_wb_availability_needs() { :; }'
+            '_wb_availability_needs() { :; }' \
+            ". '${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh'"
         echo "source '${REPO_ROOT}/shell/aliases.sh' || exit 9"
         printf '%s\n' "${after}"
     } > "${script}"
@@ -112,8 +115,10 @@ tmux-reload')"
 
     # ── 6. The plain host: every alias named in the file is defined, as
     #    before. Names come from the same pattern core's listing uses. ──────
-    names="$(grep -Eho '^[[:space:]]*alias [a-zA-Z0-9_-]+=' "${REPO_ROOT}/shell/aliases.sh" \
-        | sed -E 's/^[[:space:]]*alias ([a-zA-Z0-9_-]+)=.*/\1/' | sort -u)"
+    names="$(grep -Eho \
+        -e '^[[:space:]]*alias [a-zA-Z0-9_.-]+=' \
+        -e '^[[:space:]]*workbench_alias_define [a-zA-Z0-9_.-]+[[:space:]]' "${REPO_ROOT}/shell/aliases.sh" \
+        | sed -E 's/^[[:space:]]*(alias|workbench_alias_define) ([a-zA-Z0-9_.-]+)[=[:space:]].*/\2/' | sort -u)"
     # A stub for every tool the conditional blocks look for.
     for tool in ip netstat bat batcat btop htop python3 pip3 acpi code-insiders wl-copy nautilus \
                 nordvpn cmatrix it2profile get-functions wb dig curl; do

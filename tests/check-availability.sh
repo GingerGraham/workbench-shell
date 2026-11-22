@@ -51,8 +51,10 @@ grep -Eho \
     -e '^[[:space:]]*function[[:space:]]+[a-zA-Z_-][a-zA-Z0-9_-]*' "$@" \
     | sed -E 's/^[[:space:]]*//; s/^function[[:space:]]+//; s/[[:space:]]*\(\)$//' \
     | grep -v '^_' > "${WORK}/names"
-grep -Eho '^[[:space:]]*alias [a-zA-Z0-9_-]+=' "$@" \
-    | sed -E 's/^[[:space:]]*alias ([a-zA-Z0-9_-]+)=.*/\1/' >> "${WORK}/names"
+grep -Eho \
+    -e '^[[:space:]]*alias [a-zA-Z0-9_.-]+=' \
+    -e '^[[:space:]]*workbench_alias_define [a-zA-Z0-9_.-]+[[:space:]]' "$@" \
+    | sed -E 's/^[[:space:]]*(alias|workbench_alias_define) ([a-zA-Z0-9_.-]+)[=[:space:]].*/\2/' >> "${WORK}/names"
 sort -u -o "${WORK}/names" "${WORK}/names"
 
 # A PATH with only basic utilities, and one that adds a stub for every tool
@@ -77,6 +79,7 @@ log_warn()  { :; }
 log_error() { :; }
 log_debug() { :; }
 _wb_prompt_hook_registered() { return 1; }
+. "${ALIAS_DOUBLE}"
 _wb_availability_needs() {
     local _i=""
     if [ "$1" = "--install" ]; then _i="$2"; shift 2; fi
@@ -125,7 +128,7 @@ probe() {
     env -i HOME="${WORK}/home" PATH="${path}" TERM=dumb \
         WORKBENCH_SHELL="${sh}" WORKBENCH_OS="Linux" WITH_TOOLS="${mode}" \
         NAMES="${WORK}/names" DECL="${WORK}/${sh}-${mode}.decl" \
-        FILES="${FILES}" \
+        FILES="${FILES}" ALIAS_DOUBLE="${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh" \
         "$(command -v "${sh}")" -c ". '${WORK}/probe.sh'" \
         3>"${WORK}/${sh}-${mode}.out" >/dev/null 2>"${WORK}/${sh}-${mode}.err"
 }

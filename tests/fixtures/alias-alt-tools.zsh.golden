@@ -1,0 +1,21 @@
+aliases=get-functions
+cat=bat -p
+cls=clear
+dirsize=du -sh
+history=history 1
+installers=wb tools list
+lsa=command ls --color=auto -Alhi
+lsr=command ls --color=auto -Alhitr
+printrt=netstat -rn
+python=python3
+reset-shell=clear && get-functions --no-pager --no-aliases
+routeprint=netstat -rn
+rs=clear && get-functions --no-pager --no-aliases
+sshclear=ssh-add -D
+sshhosts=grep -E "^Host\s" "${HOME}/.ssh/config"
+tmux-attach=tmux attach-session -t main
+tmux-new=tmux new-session -s main
+top=htop
+zshconfig=${VISUAL:-vim} "${HOME}/.zshrc"
+zshreload=exec zsh
+zshsource=source "${HOME}/.zshrc"

@@ -37,6 +37,11 @@ _wb_alias_availability()   { :; }
 _wb_declare_availability() { :; }
 _wb_availability_needs()   { :; }
 '
+# Aliases go through workbench_alias_define (Core API 1.10). The stand-in is
+# written to the contract in workbench-core; nothing here is in the way of an alias.
+STUBS="${STUBS}
+. '${REPO_ROOT}/tests/fixtures/workbench-alias-double.sh'
+"
 
 # in_sh <shell> <commands>
 # Aliases are not expanded in a non-interactive bash unless asked for, and

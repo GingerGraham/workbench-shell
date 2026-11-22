@@ -42,35 +42,17 @@ _wb_declare_availability wb            installers
 # defines _wb_availability_needs (Core API, tier core).
 _wb_availability_needs "VS Code (code or code-insiders)" open-workspace
 
-# ── Aliases yield to what is already there (workbench-core D110) ─────────────
-# workbench changes only state it created. A name that is already an alias
-# or a function and that this file did not define is the host's (a
-# distribution's profile, your own rc file) and is left alone. A name this
-# file defined earlier in this shell is redefined, so a reload refreshes it.
+# ── Aliases yield to what is already there (workbench-core D124) ─────────────
+# workbench never replaces an alias or function it did not define. Every alias
+# below goes through workbench_alias_define (Core API 1.10): a name that is
+# already an alias or a function, and that workbench did not set, is the
+# host's (a distribution's profile, your own rc file) and is left alone. The
+# loader says so once, and `wb status` lists it. A name workbench defined
+# earlier in this shell is redefined, so a reload refreshes it.
 #
-# Each definition below is written as
-#     if _shell_alias_free NAME; then
-#         alias NAME=...
-#     fi
-# rather than `_shell_alias_free NAME && alias NAME=...`: workbench's
-# listings find an alias only at the start of a line.
-#
-# _SHELL_ALIASES_OURS lists the names this file has defined. Nothing in the
-# loader clears module variables between passes, so it survives a reload.
-# Works the same in bash and zsh: `alias NAME` and `typeset -f NAME` both
-# behave alike in each.
-_SHELL_ALIASES_OURS="${_SHELL_ALIASES_OURS:-}"
-
-_shell_alias_free() {
-    local name="$1"
-    case " ${_SHELL_ALIASES_OURS} " in
-        *" ${name} "*) return 0 ;;
-    esac
-    alias "${name}" >/dev/null 2>&1 && return 1
-    typeset -f "${name}" >/dev/null 2>&1 && return 1
-    _SHELL_ALIASES_OURS="${_SHELL_ALIASES_OURS} ${name}"
-    return 0
-}
+# Each call starts its line, inside an `if` block where it is conditional,
+# not after `&&`: workbench's listings find a name only at the start of a
+# line.
 
 # GNU ls takes --color=auto; BSD ls (macOS) does not and uses -G. lsa and lsr
 # call `command ls` so a user's own `ls` alias (eza, say) cannot change what
@@ -80,118 +62,86 @@ _shell_ls_color=""
 command ls --color=auto -d . >/dev/null 2>&1 && _shell_ls_color="--color=auto "
 
 # ── Filesystem ────────────────────────────────────────────────────────────────
-if _shell_alias_free lsa; then
-    # shellcheck disable=SC2139  # the colour flag is meant to expand now
-    alias lsa="command ls ${_shell_ls_color}-Alhi"
-fi
-if _shell_alias_free lsr; then
-    # shellcheck disable=SC2139  # the colour flag is meant to expand now
-    alias lsr="command ls ${_shell_ls_color}-Alhitr"
-fi
-if _shell_alias_free dirsize; then
-    alias dirsize="du -sh"
-fi
-if _shell_alias_free cls; then
-    alias cls="clear"
-fi
+workbench_alias_define lsa shell "command ls ${_shell_ls_color}-Alhi"
+workbench_alias_define lsr shell "command ls ${_shell_ls_color}-Alhitr"
+workbench_alias_define dirsize shell "du -sh"
+workbench_alias_define cls shell "clear"
 
 # ── Network diagnostics ───────────────────────────────────────────────────────
 # The routing table: ip route (iproute2) on Linux, netstat -rn on macOS and
 # anywhere without ip. Not ss -rn, which lists sockets, not routes.
 if [[ "${WORKBENCH_OS:-}" != "Mac" ]] && command -v ip &>/dev/null; then
-    if _shell_alias_free routeprint; then
-        alias routeprint="ip route"
-    fi
-    if _shell_alias_free printrt; then
-        alias printrt="ip route"
-    fi
+    workbench_alias_define routeprint shell "ip route"
+    workbench_alias_define printrt shell "ip route"
 elif command -v netstat &>/dev/null; then
-    if _shell_alias_free routeprint; then
-        alias routeprint="netstat -rn"
-    fi
-    if _shell_alias_free printrt; then
-        alias printrt="netstat -rn"
-    fi
+    workbench_alias_define routeprint shell "netstat -rn"
+    workbench_alias_define printrt shell "netstat -rn"
 fi
 
 # ── SSH agent ─────────────────────────────────────────────────────────────────
-if _shell_alias_free sshclear; then
-    alias sshclear="ssh-add -D"
-fi
+workbench_alias_define sshclear shell "ssh-add -D"
 
 # ── Better cat/bat ────────────────────────────────────────────────────────────
 if command -v batcat &>/dev/null; then
-    if _shell_alias_free cat; then
-        alias cat="batcat -p"
-    fi
-    if _shell_alias_free bat; then
-        alias bat="batcat"
-    fi
+    workbench_alias_define cat shell "batcat -p"
+    workbench_alias_define bat shell "batcat"
 elif command -v bat &>/dev/null; then
-    if _shell_alias_free cat; then
-        alias cat="bat -p"
-    fi
+    workbench_alias_define cat shell "bat -p"
 fi
 
 # ── Better top ────────────────────────────────────────────────────────────────
 if command -v btop &>/dev/null; then
-    if _shell_alias_free top; then
-        alias top="btop"
-    fi
+    workbench_alias_define top shell "btop"
 elif command -v htop &>/dev/null; then
-    if _shell_alias_free top; then
-        alias top="htop"
-    fi
+    workbench_alias_define top shell "htop"
 fi
 
 # ── Python ────────────────────────────────────────────────────────────────────
 # if-blocks, not `command -v … && alias`: listings find an alias only at
 # the start of a line.
 if command -v python3 &>/dev/null; then
-    if _shell_alias_free python; then
-        alias python="python3"
-    fi
+    workbench_alias_define python shell "python3"
 fi
 if command -v pip3 &>/dev/null; then
-    if _shell_alias_free pip; then
-        alias pip="pip3"
-    fi
+    workbench_alias_define pip shell "pip3"
 fi
 
 # ── acpi power ────────────────────────────────────────────────────────────────
 if command -v acpi &>/dev/null; then
-    if _shell_alias_free battery; then
-        alias battery="acpi -bi"
-    fi
-    if _shell_alias_free power; then
-        alias power="acpi -a"
-    fi
+    workbench_alias_define battery shell "acpi -bi"
+    workbench_alias_define power shell "acpi -a"
 fi
 
 # ── Tmux ──────────────────────────────────────────────────────────────────────
 if command -v tmux &>/dev/null; then
-    if _shell_alias_free tmux-new; then
-        alias tmux-new='tmux new-session -s main'
-    fi
-    if _shell_alias_free tmux-attach; then
-        alias tmux-attach='tmux attach-session -t main'
-    fi
+    workbench_alias_define tmux-new shell 'tmux new-session -s main'
+    workbench_alias_define tmux-attach shell 'tmux attach-session -t main'
     # Reload the config tmux reads: the first that exists in tmux's own
     # search order. Your file holds workbench's block (workbench-core D82),
     # so this reloads both. Defined with 'function': a shell that already
     # has 0.7.x's tmux-reload alias would expand it in 'tmux-reload()' and
     # fail to parse; neither bash nor zsh expands the name after 'function'.
-    # The unalias then stops that old alias shadowing the function. D110: it
-    # used to remove ANY alias of that name, a host's included; now only
-    # 0.7.x's own text goes, and a host's alias or function of the name is
-    # left in place, with no tmux-reload of ours defined over it.
+    # The unalias then stops that old alias shadowing the function. It removes
+    # only an alias workbench defined, or 0.7.x's own text, never a host's
+    # alias of the name.
     _shell_old_tmux_reload="$(alias tmux-reload 2>/dev/null)"
-    # shellcheck disable=SC2016  # matching 0.7.x's alias text literally
-    case "${_shell_old_tmux_reload}" in
-        *'tmux source-file "${HOME}/.config/tmux/tmux.conf"'*) unalias tmux-reload 2>/dev/null || true ;;
-    esac
+    if workbench_alias_is_ours tmux-reload; then
+        unalias tmux-reload 2>/dev/null || true
+    else
+        # shellcheck disable=SC2016  # matching 0.7.x's alias text literally
+        case "${_shell_old_tmux_reload}" in
+            *'tmux source-file "${HOME}/.config/tmux/tmux.conf"'*) unalias tmux-reload 2>/dev/null || true ;;
+        esac
+    fi
     unset _shell_old_tmux_reload
-    if _shell_alias_free tmux-reload; then
+    # A function, so it cannot go through workbench_alias_define; it yields by
+    # hand, the same way. Defined when no alias or function of the name exists,
+    # or when it is the function this file defined earlier in this shell
+    # (_SHELL_TMUX_RELOAD_OURS survives a reload, as module variables do). A
+    # host's alias or function of the name is left in place.
+    if ! alias tmux-reload >/dev/null 2>&1 \
+        && { [[ "${_SHELL_TMUX_RELOAD_OURS:-}" == "yes" ]] || ! typeset -f tmux-reload >/dev/null 2>&1; }; then
+        _SHELL_TMUX_RELOAD_OURS=yes
         function tmux-reload {
             local conf
             for conf in "${HOME}/.tmux.conf" \
@@ -210,43 +160,29 @@ fi
 
 # ── VS Code ───────────────────────────────────────────────────────────────────
 if command -v code-insiders &>/dev/null; then
-    if _shell_alias_free code; then
-        alias code="code-insiders"
-    fi
+    workbench_alias_define code shell "code-insiders"
 fi
 
 # ── Clipboard (Wayland) ───────────────────────────────────────────────────────
 if command -v wl-copy &>/dev/null; then
-    if _shell_alias_free copy; then
-        alias copy="wl-copy"
-    fi
-    if _shell_alias_free clip; then
-        alias clip="wl-copy"
-    fi
+    workbench_alias_define copy shell "wl-copy"
+    workbench_alias_define clip shell "wl-copy"
 fi
 
 # ── File manager ──────────────────────────────────────────────────────────────
 if command -v nautilus &>/dev/null; then
-    if _shell_alias_free explorer; then
-        alias explorer="nautilus --browser &"
-    fi
+    workbench_alias_define explorer shell "nautilus --browser &"
 fi
 
 # ── VPN ───────────────────────────────────────────────────────────────────────
 if command -v nordvpn &>/dev/null; then
-    if _shell_alias_free nordc; then
-        alias nordc="nordvpn connect"
-    fi
-    if _shell_alias_free nordd; then
-        alias nordd="nordvpn disconnect"
-    fi
+    workbench_alias_define nordc shell "nordvpn connect"
+    workbench_alias_define nordd shell "nordvpn disconnect"
 fi
 
 # ── Fun ───────────────────────────────────────────────────────────────────────
 if command -v cmatrix &>/dev/null; then
-    if _shell_alias_free matrix; then
-        alias matrix="cmatrix -abs"
-    fi
+    workbench_alias_define matrix shell "cmatrix -abs"
 fi
 
 # ── get-functions shortcut ────────────────────────────────────────────────────
@@ -261,80 +197,53 @@ fi
 # call, unchanged — its whole purpose is the full listing, aliases
 # included, same as running `wb functions` by hand.
 if command -v get-functions &>/dev/null; then
-    if _shell_alias_free aliases; then
-        alias aliases="get-functions"
-    fi
-    if _shell_alias_free reset-shell; then
-        alias reset-shell="clear && get-functions --no-pager --no-aliases"
-    fi
-    if _shell_alias_free rs; then
-        alias rs="clear && get-functions --no-pager --no-aliases"
-    fi
+    workbench_alias_define aliases shell "get-functions"
+    workbench_alias_define reset-shell shell "clear && get-functions --no-pager --no-aliases"
+    workbench_alias_define rs shell "clear && get-functions --no-pager --no-aliases"
 fi
 
 # ── wb tools shortcut ─────────────────────────────────────────────────────────
 if command -v wb &>/dev/null; then
-    if _shell_alias_free installers; then
-        alias installers="wb tools list"
-    fi
+    workbench_alias_define installers shell "wb tools list"
 fi
 
 # ── SSH hosts ─────────────────────────────────────────────────────────────────
 # If list-ssh-hosts is defined (workbench-ssh), use it; otherwise fall back to
 # a simple grep.
 if declare -f list-ssh-hosts &>/dev/null; then
-    if _shell_alias_free sshhosts; then
-        alias sshhosts="list-ssh-hosts"
-    fi
+    workbench_alias_define sshhosts shell "list-ssh-hosts"
 else
-    if _shell_alias_free sshhosts; then
-        alias sshhosts='grep -E "^Host\s" "${HOME}/.ssh/config"'
-    fi
+    # shellcheck disable=SC2016  # expands when the alias runs, not now
+    workbench_alias_define sshhosts shell 'grep -E "^Host\s" "${HOME}/.ssh/config"'
 fi
 
 # ── iTerm2 ────────────────────────────────────────────────────────────────────
 if command -v it2profile &>/dev/null; then
-    if _shell_alias_free solarized; then
-        alias solarized="it2profile -s Solarized"
-    fi
-    if _shell_alias_free black; then
-        alias black="it2profile -s Black"
-    fi
-    if _shell_alias_free smooth; then
-        alias smooth="it2profile -s Smooth"
-    fi
+    workbench_alias_define solarized shell "it2profile -s Solarized"
+    workbench_alias_define black shell "it2profile -s Black"
+    workbench_alias_define smooth shell "it2profile -s Smooth"
 fi
 
 # ── Shell-specific ────────────────────────────────────────────────────────────
 if _shell_in_zsh; then
-    if _shell_alias_free zshconfig; then
-        alias zshconfig='${VISUAL:-vim} "${HOME}/.zshrc"'
-    fi
-    if _shell_alias_free zshreload; then
-        alias zshreload="exec zsh"
-    fi
+    # shellcheck disable=SC2016  # expands when the alias runs, not now
+    workbench_alias_define zshconfig shell '${VISUAL:-vim} "${HOME}/.zshrc"'
+    workbench_alias_define zshreload shell "exec zsh"
     # Re-read ~/.zshrc in the current shell. zshreload starts a new zsh
     # instead; this keeps the session's own variables and history.
-    if _shell_alias_free zshsource; then
-        alias zshsource='source "${HOME}/.zshrc"'
-    fi
-    if _shell_alias_free history; then
-        alias history="history 1"
-    fi
+    # shellcheck disable=SC2016  # expands when the alias runs, not now
+    workbench_alias_define zshsource shell 'source "${HOME}/.zshrc"'
+    workbench_alias_define history shell "history 1"
 fi
 
 if _shell_in_bash; then
-    if _shell_alias_free bashconfig; then
-        alias bashconfig='${VISUAL:-vim} "${HOME}/.bashrc"'
-    fi
-    if _shell_alias_free bashreload; then
-        alias bashreload="exec bash"
-    fi
+    # shellcheck disable=SC2016  # expands when the alias runs, not now
+    workbench_alias_define bashconfig shell '${VISUAL:-vim} "${HOME}/.bashrc"'
+    workbench_alias_define bashreload shell "exec bash"
     # Re-read ~/.bashrc in the current shell. bashreload starts a new bash
     # instead; this keeps the session's own variables and history.
-    if _shell_alias_free bashsource; then
-        alias bashsource='source "${HOME}/.bashrc"'
-    fi
+    # shellcheck disable=SC2016  # expands when the alias runs, not now
+    workbench_alias_define bashsource shell 'source "${HOME}/.bashrc"'
 fi
 
 # ── functions ────────────────────────────────────────────────────────────
