@@ -1,0 +1,35 @@
+aliases=get-functions
+bat=batcat
+battery=acpi -bi
+black=it2profile -s Black
+cat=batcat -p
+clip=wl-copy
+cls=clear
+code=code-insiders
+copy=wl-copy
+dirsize=du -sh
+explorer=nautilus --browser &
+history=history 1
+installers=wb tools list
+lsa=command ls --color=auto -Alhi
+lsr=command ls --color=auto -Alhitr
+matrix=cmatrix -abs
+nordc=nordvpn connect
+nordd=nordvpn disconnect
+pip=pip3
+power=acpi -a
+printrt=ip route
+python=python3
+reset-shell=clear && get-functions --no-pager --no-aliases
+routeprint=ip route
+rs=clear && get-functions --no-pager --no-aliases
+smooth=it2profile -s Smooth
+solarized=it2profile -s Solarized
+sshclear=ssh-add -D
+sshhosts=grep -E "^Host\s" "${HOME}/.ssh/config"
+tmux-attach=tmux attach-session -t main
+tmux-new=tmux new-session -s main
+top=btop
+zshconfig=${VISUAL:-vim} "${HOME}/.zshrc"
+zshreload=exec zsh
+zshsource=source "${HOME}/.zshrc"
