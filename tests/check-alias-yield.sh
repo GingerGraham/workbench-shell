@@ -80,15 +80,27 @@ alias lsa >/dev/null 2>&1 && echo "ALIAS=defined-over-function" || echo "ALIAS=n
         && ok "${sh}: a host's own lsa function is untouched; no alias is defined over it" \
         || fail "${sh}: foreign function case: ${out}"
 
-    # ── 3. Nothing pre-existing: defined, and a reload refreshes it. ────────
+    # ── 3. Nothing pre-existing: defined; one the user removed comes back on
+    #    reload. ──────────────────────────────────────────────────────────
     out="$(run_case "${sh}" ':' '
 alias lsr >/dev/null 2>&1 && echo "FIRST=defined" || echo "FIRST=missing"
-alias lsr="stale value"
+unalias lsr
 source "'"${REPO_ROOT}"'/shell/aliases.sh"
-alias lsr | grep -q "command ls" && echo "RELOAD=refreshed" || echo "RELOAD=stale"')"
-    [[ "${out}" == *"FIRST=defined"* && "${out}" == *"RELOAD=refreshed"* ]] \
-        && ok "${sh}: with nothing pre-existing the alias is defined, and a reload refreshes it" \
+alias lsr | grep -q "command ls" && echo "RELOAD=defined-again" || echo "RELOAD=missing"')"
+    [[ "${out}" == *"FIRST=defined"* && "${out}" == *"RELOAD=defined-again"* ]] \
+        && ok "${sh}: with nothing pre-existing the alias is defined, and one removed with unalias comes back on reload" \
         || fail "${sh}: plain/reload case: ${out}"
+
+    # ── 3b. A reload leaves an alias the user replaced after this file set
+    #    it (workbench-core D125). ──────────────────────────────────────────
+    out="$(run_case "${sh}" ':' '
+alias lsr="my own lsr"
+source "'"${REPO_ROOT}"'/shell/aliases.sh"
+alias lsr
+alias lsa | grep -q "command ls" && echo "OTHERS=refreshed" || echo "OTHERS=missing"')"
+    [[ "${out}" == *"my own lsr"* && "${out}" != *"command ls"*"-Alhitr"* && "${out}" == *"OTHERS=refreshed"* ]] \
+        && ok "${sh}: a reload keeps an alias the user replaced after workbench set it, and still refreshes the others" \
+        || fail "${sh}: user override then reload: ${out}"
 
     # ── 4. With an ls alias in place, lsr and lsa still list correctly. ─────
     out="$(run_case "${sh}" "alias ls='printf \"ALIAS-LS-RAN\\n\"; false'" '
