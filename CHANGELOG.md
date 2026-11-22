@@ -4,6 +4,8 @@ All notable changes to `workbench-shell` are documented here.
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-22
+
 ### Changed
 
 - **The aliases go through workbench-core's `workbench_alias_define`, and
